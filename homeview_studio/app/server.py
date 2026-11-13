@@ -214,7 +214,7 @@ def list_backgrounds():
     return out
 
 
-def apply_layout(layout):
+def apply_layout(layout, ui_lang=None):
     url = (layout.get("dashboard", {}).get("url_path") or "home-view").strip("/")
     title = layout.get("dashboard", {}).get("title") or "Home View"
     if not re.fullmatch(r"[a-z0-9]+-[a-z0-9-]+", url):
@@ -225,6 +225,8 @@ def apply_layout(layout):
                                  "icon": s.get("attributes", {}).get("icon"),
                                  "name": s.get("attributes", {}).get("friendly_name")} for s in ws.call("get_states")}
         lang = layout.get("language", "auto")
+        if lang not in ("it", "en") and ui_lang in ("it", "en"):
+            lang = ui_lang  # "auto": the language of the person using the editor
         if lang not in ("it", "en"):
             core_lang = (ws.call("get_config") or {}).get("language") or "en"
             lang = "it" if core_lang.startswith("it") else "en"
@@ -354,7 +356,7 @@ class Handler(BaseHTTPRequestHandler):
                 body = self._body()
                 lay = generator.normalize(json.loads(body)) if body else load_layout()
                 save_layout(lay)
-                res = apply_layout(lay)
+                res = apply_layout(lay, (q.get("lang") or [None])[0])
                 log("applied", res)
                 return self._send(200, {"ok": True, **res})
             if p == "/api/backgrounds":

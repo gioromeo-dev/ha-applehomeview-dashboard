@@ -91,6 +91,12 @@ const I18N_EN = {
   'Riempi': 'Fill', 'Intera': 'Fit', 'Opzioni': 'Options', 'Mostra i nomi': 'Show names', 'Al tocco': 'On tap',
   'Apri a schermo intero (diretta)': 'Open full screen (live)', 'Aggiorna le immagini ogni': 'Refresh images every',
   'Spazio tra le telecamere': 'Space between cameras', 'Nessuna telecamera selezionata': 'No camera selected',
+  // proposal
+  'Riorganizza in un attimo': 'Reorganize in a moment',
+  'Analizzo tutti i tuoi dispositivi e propongo una Home: gruppi per luci, prese, scene e temperature, più clima, porte, media e telecamera.': 'Analyzes all your devices and proposes a Home: groups for lights, plugs, scenes and temperatures, plus climate, doors, media and camera.',
+  'Proponi una Home': 'Propose a Home', 'Porta': 'Door', 'Finestra': 'Window', 'Prese': 'Plugs', 'Temperature': 'Temperatures', 'Interruttori': 'Switches',
+  'Tieni': 'Keep', 'Torna a prima': 'Go back', 'Proposta:': 'Proposal:',
+  'quadrati. Puoi ancora modificarli; premi': 'tiles. You can still edit them; press', 'per pubblicarla.': 'to publish it.',
   // general
   'Dashboard': 'Dashboard', 'Titolo': 'Title', 'Indirizzo (deve contenere un trattino)': 'Address (must contain a hyphen)', 'Sorgenti': 'Sources',
   'Telecamera principale (pagina Telecamere e campanello)': 'Main camera (Cameras page and doorbell)',

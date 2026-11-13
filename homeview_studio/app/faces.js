@@ -33,10 +33,10 @@ const wrap = (inner, bg, key) => `<div style="position:relative;width:100%;heigh
   <div style="position:absolute;inset:0;animation:${fresh ? 'hvfadein 1.2s ease' : 'none'}">${inner}</div></div>`;
 
 // ---- faces ------------------------------------------------------------------
-let html = '', key = face, photoIdx = null;
+let out = '', key = face, photoIdx = null;
 if (face === 'clock') {
   key += '|' + minuteKey;
-  html = wrap(CLOCK(d, CFG.clockStyle || 'bold', CFG.accent, CFG.fg, W, true), CFG.accent, key);
+  out = wrap(CLOCK(d, CFG.clockStyle || 'bold', CFG.accent, CFG.fg, W, true), CFG.accent, key);
 }
 
 else if (face === 'photos') {
@@ -57,7 +57,7 @@ else if (face === 'photos') {
   photoIdx = i;
   key += '|' + i + '|' + minuteKey;
   const img = i >= 0 ? `<div style="position:absolute;inset:0;background:url('${esc(list[i])}') center/cover no-repeat;animation:${!CFG.preview && prev.photo !== i ? 'hvfadein 1.5s ease' : 'none'}"></div>` : '';
-  html = wrap(`${img}<div style="position:absolute;inset:0;background:linear-gradient(to top, rgba(0,0,0,.55), rgba(0,0,0,0) 45%)"></div>
+  out = wrap(`${img}<div style="position:absolute;inset:0;background:linear-gradient(to top, rgba(0,0,0,.55), rgba(0,0,0,0) 45%)"></div>
     <div style="position:absolute;left:5%;bottom:6%;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.4)">
       <div style="font-size:15vmin;font-weight:200;line-height:1;letter-spacing:-0.03em">${hhmm}</div>
       <div style="font-size:3.4vmin;font-weight:600;margin-top:1.2vmin">${esc(dateLong)}</div>
@@ -75,7 +75,7 @@ else if (face === 'flow') {
   const t = (now / 1000);
   const blob = (c, size, x, y, anim, dur) => `<div style="position:absolute;left:${x}%;top:${y}%;width:${size}vmax;height:${size}vmax;margin:-${size / 2}vmax 0 0 -${size / 2}vmax;border-radius:50%;background:radial-gradient(circle, ${c} 0%, ${c}00 68%);opacity:${op};filter:blur(4vmin);animation:${anim} ${dur * sp}s ease-in-out infinite;animation-delay:-${(t % (dur * sp)).toFixed(1)}s"></div>`;
   key += '|' + active + '|' + minuteKey + '|' + pal[0];
-  html = wrap(`${blob(pal[0], 75, 30, 35, 'hvdrift1', 26)}${blob(pal[1], 70, 72, 60, 'hvdrift2', 31)}${blob(pal[2], 60, 50, 80, 'hvdrift3', 23)}
+  out = wrap(`${blob(pal[0], 75, 30, 35, 'hvdrift1', 26)}${blob(pal[1], 70, 72, 60, 'hvdrift2', 31)}${blob(pal[2], 60, 50, 80, 'hvdrift3', 23)}
     <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff">
       <div style="font-size:22vmin;font-weight:100;letter-spacing:-0.04em;line-height:1">${hhmm}</div>
       <div style="font-size:3.6vmin;font-weight:500;opacity:.85;margin-top:2vmin">${esc(dateLong)}</div>
@@ -94,7 +94,7 @@ else if (face === 'meridian') {
   }
   const hx = cx + (R - 12) * Math.sin(ang * Math.PI / 180), hy = cy - (R - 12) * Math.cos(ang * Math.PI / 180);
   key += '|' + minuteKey;
-  html = wrap(`<svg viewBox="0 0 ${W.toFixed(1)} 100" style="width:100%;height:100%;display:block;font-family:${FONT}">
+  out = wrap(`<svg viewBox="0 0 ${W.toFixed(1)} 100" style="width:100%;height:100%;display:block;font-family:${FONT}">
       <defs><radialGradient id="hvm" cx="50%" cy="45%" r="70%"><stop offset="0%" stop-color="#fff" stop-opacity="0.16"/><stop offset="100%" stop-color="#000" stop-opacity="0.25"/></radialGradient></defs>
       <rect width="${W}" height="100" fill="url(#hvm)"/>
       <line x1="${cx}" y1="${cy}" x2="${hx.toFixed(2)}" y2="${hy.toFixed(2)}" stroke="${CFG.fg}" stroke-opacity="0.35" stroke-width="0.6" stroke-linecap="round"/>
@@ -128,7 +128,7 @@ else if (face === 'weather') {
       <div style="font-size:3vmin;font-weight:600">${p.temperature != null ? Math.round(p.temperature) + '°' : '–'}</div></div>`;
   }).join('');
   key += '|' + c + '|' + temp + '|' + hi + lo + '|' + td.length + '|' + minuteKey;
-  html = wrap(`<div style="position:absolute;inset:0;padding:6% 7%;box-sizing:border-box;color:#fff;display:flex;flex-direction:column">
+  out = wrap(`<div style="position:absolute;inset:0;padding:6% 7%;box-sizing:border-box;color:#fff;display:flex;flex-direction:column">
       <div style="display:flex;justify-content:space-between;align-items:flex-start">
         <div><div style="font-size:4vmin;font-weight:600">${esc(CFG.place || T('Casa', 'Home'))}</div>
           <div style="font-size:24vmin;font-weight:200;line-height:1;letter-spacing:-0.04em;margin-top:1vmin">${temp}</div>
@@ -158,7 +158,7 @@ else if (face === 'calendar') {
         <div style="font-size:3vmin;opacity:.75">${esc(dayLbl(e._s))} · ${esc(time)}</div></div></div>`;
   }).join('');
   key += '|' + ev.map((e) => e.start + e.summary).join(',') + '|' + minuteKey;
-  html = wrap(`<div style="position:absolute;inset:0;padding:6% 7%;box-sizing:border-box;color:#fff;display:grid;grid-template-columns:1fr 1.4fr;gap:6%">
+  out = wrap(`<div style="position:absolute;inset:0;padding:6% 7%;box-sizing:border-box;color:#fff;display:grid;grid-template-columns:1fr 1.4fr;gap:6%">
       <div><div style="font-size:4vmin;font-weight:600;color:#FF453A;text-transform:uppercase;letter-spacing:.08em">${esc(d.toLocaleDateString(LOC, {weekday: 'long'}))}</div>
         <div style="font-size:30vmin;font-weight:200;line-height:1;letter-spacing:-0.05em">${d.getDate()}</div>
         <div style="font-size:4vmin;opacity:.8">${esc(d.toLocaleDateString(LOC, {month: 'long', year: 'numeric'}))}</div>
@@ -169,6 +169,6 @@ else if (face === 'calendar') {
 }
 
 // identical string for the same key -> the DOM is left alone, so animations don't restart
-if (prev.key === key && !CFG.preview) return prev.html;
-if (!CFG.preview) window.__hvFace = {key, html, face, photo: photoIdx};
-return html;
+if (prev.key === key && !CFG.preview) return prev.out;
+if (!CFG.preview) window.__hvFace = {key, out, face, photo: photoIdx};
+return out;

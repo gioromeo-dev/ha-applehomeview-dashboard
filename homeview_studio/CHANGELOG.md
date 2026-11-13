@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.8.0
+- "Propose a Home": analyzes your devices and builds a layout with groups (lights, plugs, scenes, temperatures, rooms) you can keep or undo.
+- Fixed: screensaver faces showed "ButtonCardJSTemplateError".
+- Fixed: with language "Automatic" the dashboard now follows your profile language, not the system one.
+- "Proponi una Home": analizza i dispositivi e crea un layout con gruppi (luci, prese, scene, temperature, stanze) da tenere o annullare.
+- Corretto: i quadranti del salvaschermo mostravano "ButtonCardJSTemplateError".
+- Corretto: con lingua "Automatica" la dashboard segue la lingua del tuo profilo, non quella di sistema.
+
 ## 1.7.0
 - New Cameras tab: per-camera names and fit, order, layouts (auto, grid 1–4 columns, featured), names, tap action, refresh, spacing, radius, live preview.
 - Nuova scheda Telecamere: nomi e adattamento per telecamera, ordine, disposizioni (automatica, griglia 1–4 colonne, una grande), nomi, azione al tocco, aggiornamento, spazi, arrotondamento, anteprima.

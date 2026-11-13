@@ -87,6 +87,7 @@ input[type=color]{width:36px;height:30px;padding:0;border:1px solid var(--line2)
 .count{font-size:11.5px;color:var(--mut);margin:4px 0}
 /* stage */
 .stagewrap{position:relative;min-width:0;min-height:0;display:flex;flex-direction:column}
+.stagebar.proposal{background:rgba(10,132,255,.14);color:var(--txt)}
 .stagebar{display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid var(--line);font-size:12px;color:var(--mut)}
 .stage{flex:1;overflow:auto;position:relative;display:flex;align-items:flex-start;justify-content:center;padding:22px}
 .ipad{position:relative;width:100%;max-width:1100px;aspect-ratio:4/3;border-radius:26px;overflow:hidden;box-shadow:0 0 0 10px #050506,0 0 0 11px #2b2d33,0 30px 80px rgba(0,0,0,.6);background:#000;flex:0 0 auto}
@@ -367,6 +368,64 @@ function addMembers(i, ids) {
   if (!nu.length) return toast('Già presenti nel gruppo');
   edit(() => { g.entities = [...(g.entities || []), ...nu]; sel = i; });
   renderInsp(); renderPanel(); toast(`${nu.length === 1 ? esc((EM[nu[0]] || {}).name || nu[0]) + ' aggiunto' : nu.length + ' dispositivi aggiunti'} a «${esc(g.name)}»`);
+}
+// ---------------------------------------------------------------- automatic proposal
+function proposeHome() {
+  const cols = L.grid.columns || 5;
+  const ok = (e) => !e.hidden;
+  const by = (d) => E.filter(e => e.domain === d && ok(e));
+  const camPrefixes = by('camera').map(c => c.entity_id.split('.')[1].replace(/\d+$/, '')).filter(p => p.length > 3);
+  const lights = by('light');
+  const plugs = by('switch').filter(s => !camPrefixes.some(p => s.entity_id.split('.')[1].startsWith(p)));
+  const scenesAll = by('scene');
+  const scenes = scenesAll.some(s => s.area) ? scenesAll.filter(s => s.area) : scenesAll.slice(0, 12);
+  const recent = [...scenes].filter(s => !isNaN(Date.parse(s.state))).sort((a, b) => Date.parse(b.state) - Date.parse(a.state));
+  const climates = by('climate');
+  const media = by('media_player').sort((a, b) => (b.device_class === 'tv') - (a.device_class === 'tv'));
+  const seen = new Set();
+  const doors = by('binary_sensor').filter(b => ['door', 'window', 'garage_door', 'opening'].includes(b.device_class))
+    .filter(b => { const k = b.name.trim().toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; });
+  const temps = by('sensor').filter(s => s.device_class === 'temperature' && s.area && s.state !== 'unavailable');
+  const bools = by('input_boolean');
+  const scripts = by('script').filter(s => s.state !== 'unavailable');
+  const cam = L.sources.camera && EM[L.sources.camera] ? L.sources.camera : (by('camera')[0] || {}).entity_id;
+  const gid = () => Math.random().toString(36).slice(2, 7);
+  const ent = (e, extra) => Object.assign({kind: 'entity', entity: e.entity_id, name: e.name, w: 1, h: 1}, extra || {});
+  const grp = (name, icon, list) => ({kind: 'group', gid: gid(), name: tr(name), icon, entities: list.map(e => e.entity_id), hold: 'toggle_all', w: 1, h: 1});
+  const out = [{kind: 'weather', w: 2, h: 2}, {kind: 'clock', w: 1, h: 1}];
+  if (lights.length > 1) out.push(grp('Luci', 'mdi:lightbulb-group-outline', lights)); else lights.forEach(e => out.push(ent(e)));
+  if (plugs.length > 1) out.push(grp('Prese', 'mdi:power-socket-eu', plugs)); else plugs.forEach(e => out.push(ent(e)));
+  climates.slice(0, 2).forEach(e => out.push(ent(e)));
+  if (cam) out.push({kind: 'camera', entity: cam, name: EM[cam] ? EM[cam].name : tr('Telecamera'), label: 'Live', w: 1, h: 1});
+  if (scenes.length > 2) out.push(grp('Scene', 'mdi:palette-outline', scenes)); 
+  (scenes.length > 2 ? recent.slice(0, 2) : scenes).forEach(e => out.push(ent(e)));
+  doors.slice(0, 2).forEach(e => out.push(ent(e, {name: tr(e.device_class === 'window' ? 'Finestra' : e.device_class === 'garage_door' ? 'Garage' : 'Porta'), label: undefined})));
+  if (temps.length > 1) out.push(Object.assign(grp('Temperature', 'mdi:thermometer', temps), {names: Object.fromEntries(temps.map(s => [s.entity_id, s.area]))})); else temps.forEach(e => out.push(ent(e, {name: e.area || e.name})));
+  media.slice(0, 3).forEach(e => out.push(ent(e)));
+  // rooms with several lights get their own group
+  const areas = {}; lights.forEach(l => { if (l.area) (areas[l.area] = areas[l.area] || []).push(l); });
+  Object.entries(areas).filter(([, ls]) => ls.length > 1 && ls.length < lights.length).forEach(([a, ls]) => out.push(Object.assign(grp('Luci', 'mdi:sofa-outline', ls), {name: a})));
+  if (bools.length > 2) out.push(grp('Interruttori', 'mdi:toggle-switch-outline', bools)); else bools.forEach(e => out.push(ent(e)));
+  scripts.slice(0, 2).forEach(e => out.push(ent(e)));
+  // place in reading order
+  const occ = new Set(); const fitsAt = (x, y, w, h) => { if (x + w > cols) return false; for (let yy = y; yy < y + h; yy++) for (let xx = x; xx < x + w; xx++) if (occ.has(xx + ',' + yy)) return false; return true; };
+  out.forEach(tl => { for (let y = 0; y < 60; y++) { let done = false; for (let x = 0; x < cols; x++) if (fitsAt(x, y, tl.w, tl.h)) { tl.x = x; tl.y = y; for (let yy = y; yy < y + tl.h; yy++) for (let xx = x; xx < x + tl.w; xx++) occ.add(xx + ',' + yy); done = true; break; } if (done) break; } });
+  return out;
+}
+let proposalActive = false;
+function applyProposal() {
+  const tiles = proposeHome();
+  edit(() => { L.tiles = tiles; sel = -1; });
+  proposalActive = true; renderInsp(); renderPanel(); showProposalBar();
+}
+function showProposalBar() {
+  const bar = document.querySelector('.stagebar');
+  if (!proposalActive) { bar.classList.remove('proposal'); bar.innerHTML = '<i class="mdi mdi-gesture-tap-hold"></i><span>Trascina gli elementi sulla griglia · trascina un quadrato per spostarlo (sopra un altro per scambiarli) · clic per modificarlo</span>'; return; }
+  bar.classList.add('proposal');
+  bar.innerHTML = `<i class="mdi mdi-auto-fix"></i><span style="flex:1">Proposta: <b>${L.tiles.length}</b> quadrati. Puoi ancora modificarli; premi <b>Applica alla dashboard</b> per pubblicarla.</span>
+    <button class="btn sm" id="propkeep"><i class="mdi mdi-check"></i>Tieni</button><button class="btn sm danger" id="propundo"><i class="mdi mdi-undo"></i>Torna a prima</button>`;
+  $('#propkeep').onclick = () => { proposalActive = false; showProposalBar(); };
+  $('#propundo').onclick = () => { proposalActive = false; showProposalBar(); undo(); };
 }
 function addTile(t, x, y) {
   if (x == null) ({x, y} = firstFree(t.w, t.h));
@@ -712,6 +771,8 @@ function renderPanel() {
         <div class="wbtn" draggable="true" data-new="group"><i class="mdi mdi-lightbulb-group-outline"></i>Gruppo</div>
       </div>
       ${sw('grid.calendar_bar', 'Barra "Prossimi" in fondo', 'Mostra gli eventi dei calendari scelti in Generale')}
+      <div class="hint" style="margin:12px 0 4px"><b>Riorganizza in un attimo</b><br>Analizzo tutti i tuoi dispositivi e propongo una Home: gruppi per luci, prese, scene e temperature, più clima, porte, media e telecamera.
+        <br><button class="btn sm pri" id="propose" style="margin-top:8px"><i class="mdi mdi-auto-fix"></i>Proponi una Home</button></div>
       <h3>Dispositivi ed entità</h3>
       <input class="in" id="q" placeholder="Cerca per nome, stanza o ID…" value="${esc(filt.q)}">
       <div class="chips">${DOMAINS.map(([k, n]) => `<button class="chip ${filt.dom === k ? 'on' : ''}" data-dom="${k}">${n}</button>`).join('')}</div>
@@ -738,6 +799,7 @@ function renderPanel() {
       addTile(newTile('group', {name: filt.area ? (filt.dom !== 'all' ? dn + ' ' + filt.area : filt.area) : dn, icon: icons[filt.dom], entities: list.slice(0, 40).map(x => x.entity_id)}));
     };
     el.querySelectorAll('.wbtn').forEach(b => b.ondblclick = () => addTile(newTile(b.dataset.new)));
+    $('#propose').onclick = (ev) => { if (L.tiles.length > 2 && !confirmInline(ev.currentTarget)) return; applyProposal(); };
   }
   if (tab === 'look') {
     const th = L.theme;
@@ -924,7 +986,7 @@ $('#apply').onclick = async () => {
   const b = $('#apply'); b.disabled = true; b.innerHTML = '<i class="mdi mdi-loading mdi-spin"></i>Applico…';
   try {
     clearTimeout(saveT);
-    const r = await api('api/apply', {method:'POST', body: JSON.stringify(L)});
+    const r = await api('api/apply?lang=' + UI_LANG, {method:'POST', body: JSON.stringify(L)});
     dirty = false; status(); BACKUPS = await api('api/backups').catch(() => BACKUPS);
     toast(`Dashboard <b>/${esc(r.url_path)}</b> aggiornata. Ricarica la pagina sull'iPad.`);
     if (tab === 'general') renderPanel();

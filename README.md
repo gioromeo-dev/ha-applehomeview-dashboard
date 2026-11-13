@@ -39,6 +39,7 @@ Home View Studio is an add-on (app) for Home Assistant. It provides:
 |---|---|
 | **Items** | Browse every Home Assistant entity, with search and filters by type and by room. Drag them onto the grid or press **+**. |
 | **Tiles** | Name, label, icon, style (light, door, climate, media, sensor, cover, lock, fan…), tap action and size (1×1, 2×1, 1×2, 2×2). |
+| **Propose a Home** | One click analyzes all your devices and proposes a complete Home: groups for lights, plugs, scenes and temperatures (plus a group per room with several lights), climate, doors, media and camera. Remote-control scenes and camera internals are skipped. Keep it, tweak it or go back. |
 | **Groups** | One tile that groups several devices, such as "all lights" or "all living-room plugs". It shows "2 on out of 5". A **tap** opens a popup with every device plus *Turn all on / Turn all off* buttons. A **long press** turns the whole group on or off. |
 | **Widgets** | Weather (2×2), clock, live camera, and an "Up next" bar with your calendar events. |
 | **Clocks** | 6 clock faces (Classic, Minimal, Big numerals, Digital, Hours & minutes, Solar) plus the original one. Pick one separately for the Home clock tile, the Widgets page and the screensaver. |
