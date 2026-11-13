@@ -1,0 +1,854 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Home View Studio</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css">
+<style>
+:root{
+  --bg:#0E0F13; --panel:#16181E; --panel2:#1D2028; --line:rgba(255,255,255,.08); --line2:rgba(255,255,255,.14);
+  --txt:#F2F2F7; --mut:#8E8E98; --acc:#0A84FF; --ok:#30D158; --warn:#FF9F0A; --bad:#FF453A;
+  --font:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',Helvetica,Roboto,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--txt);font:14px/1.4 var(--font)}
+button,input,select{font:inherit;color:inherit}
+.app{display:grid;grid-template-rows:56px 1fr;height:100vh}
+header{display:flex;align-items:center;gap:12px;padding:0 16px;border-bottom:1px solid var(--line);background:var(--panel)}
+header h1{font-size:16px;font-weight:650;margin:0;display:flex;align-items:center;gap:8px;letter-spacing:-.2px}
+header h1 i{font-size:22px;color:var(--acc)}
+.pill{font-size:12px;padding:3px 10px;border-radius:99px;background:var(--panel2);color:var(--mut);white-space:nowrap}
+.pill.dirty{color:var(--warn);background:rgba(255,159,10,.12)}
+.pill.ok{color:var(--ok);background:rgba(48,209,88,.12)}
+.sp{flex:1}
+.btn{color:var(--txt);border:1px solid var(--line2);background:var(--panel2);border-radius:9px;padding:7px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;text-decoration:none}
+.btn:hover{background:#262a34}
+.btn.pri{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600}
+.btn.pri:hover{filter:brightness(1.1)}
+.btn.sm{padding:4px 9px;font-size:12px;border-radius:7px}
+.btn.danger{color:var(--bad)}
+.btn:disabled{opacity:.5;cursor:default}
+.main{display:grid;grid-template-columns:340px 1fr 300px;min-height:0}
+aside{background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+aside.right{border-right:0;border-left:1px solid var(--line)}
+.tabs{display:flex;gap:2px;padding:8px;border-bottom:1px solid var(--line)}
+.tab{flex:1;border:0;background:transparent;padding:7px 4px;border-radius:8px;cursor:pointer;color:var(--mut);font-size:12.5px;font-weight:550}
+.tab.on{background:var(--panel2);color:var(--txt)}
+.scroll{overflow:auto;padding:12px 14px 30px;flex:1;min-height:0}
+h3{font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--mut);margin:18px 0 8px;font-weight:650}
+h3:first-child{margin-top:4px}
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.field>label,.lbl{font-size:12px;color:var(--mut)}
+.in,select.in{width:100%;background:var(--bg);border:1px solid var(--line2);border-radius:8px;padding:7px 9px;outline:none}
+.in:focus{border-color:var(--acc)}
+.row{display:flex;gap:8px;align-items:center}
+.row>*{flex:1}
+.range{display:grid;grid-template-columns:1fr 54px;gap:8px;align-items:center}
+.range output{font-size:12px;color:var(--mut);text-align:right;font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--acc)}
+input[type=color]{width:36px;height:30px;padding:0;border:1px solid var(--line2);border-radius:8px;background:none;cursor:pointer;flex:0 0 36px}
+.sw{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line);gap:10px}
+.sw small{display:block;color:var(--mut);font-size:11.5px}
+.toggle{position:relative;width:42px;height:25px;flex:0 0 42px}
+.toggle input{opacity:0;width:0;height:0}
+.toggle span{position:absolute;inset:0;background:#3a3a42;border-radius:99px;transition:.2s;cursor:pointer}
+.toggle span:before{content:"";position:absolute;width:21px;height:21px;left:2px;top:2px;border-radius:50%;background:#fff;transition:.2s}
+.toggle input:checked+span{background:var(--ok)}
+.toggle input:checked+span:before{transform:translateX(17px)}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0}
+.chip{border:1px solid var(--line2);background:transparent;border-radius:99px;padding:3px 9px;font-size:12px;cursor:pointer;color:var(--mut)}
+.chip.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.widgets{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.mem{display:grid;grid-template-columns:24px 1fr auto;gap:6px;align-items:center;padding:6px 4px;border-bottom:1px solid var(--line)}
+.mem i{font-size:18px;color:var(--mut)}.mem .n{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px}
+.mem .s{font-size:11px;color:var(--mut)}.mem .b{display:flex;gap:2px}.mem .b button{border:0;background:transparent;color:var(--mut);cursor:pointer;font-size:16px;padding:2px}
+.mem .b button:hover{color:var(--txt)}
+.grpbar{display:flex;gap:6px;align-items:center;background:rgba(10,132,255,.12);border:1px solid rgba(10,132,255,.35);border-radius:10px;padding:8px 10px;margin:8px 0;font-size:12px}
+.grpbar b{color:var(--txt)}
+.tile .badge{position:absolute;top:8%;right:9%;font-size:calc(var(--ls)*.85);opacity:.75}
+.wbtn{border:1px dashed var(--line2);border-radius:10px;padding:10px 4px;text-align:center;cursor:grab;background:var(--panel2);font-size:12px}
+.wbtn i{display:block;font-size:22px;margin-bottom:2px}
+.ent{display:grid;grid-template-columns:30px 1fr auto;gap:8px;align-items:center;padding:7px 8px;border-radius:9px;cursor:grab;user-select:none}
+.ent:hover{background:var(--panel2)}
+.ent i{font-size:20px;color:var(--mut);text-align:center}
+.ent .n{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ent .s{font-size:11px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ent .row{flex:none;gap:0}
+.ent .row>.st{flex:none}
+.ent .st{font-size:11.5px;color:var(--mut);max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right}
+.ent.used .n:after{content:" ✓";color:var(--ok)}
+.ent .add{opacity:0;border:0;background:var(--acc);color:#fff;border-radius:6px;width:22px;height:22px;cursor:pointer;margin-left:6px}
+.ent:hover .add{opacity:1}
+.count{font-size:11.5px;color:var(--mut);margin:4px 0}
+/* stage */
+.stagewrap{position:relative;min-width:0;min-height:0;display:flex;flex-direction:column}
+.stagebar{display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid var(--line);font-size:12px;color:var(--mut)}
+.stage{flex:1;overflow:auto;position:relative;display:flex;align-items:flex-start;justify-content:center;padding:22px}
+.ipad{position:relative;width:100%;max-width:1100px;aspect-ratio:4/3;border-radius:26px;overflow:hidden;box-shadow:0 0 0 10px #050506,0 0 0 11px #2b2d33,0 30px 80px rgba(0,0,0,.6);background:#000;flex:0 0 auto}
+.ipad .bgimg{position:absolute;inset:0;background-size:cover;background-position:center}
+.board{position:absolute;inset:0;margin:0 auto;padding:2.5%;display:grid;align-content:start;overflow:auto}
+.cell{border:1.5px dashed rgba(255,255,255,.18);border-radius:var(--r);transition:.12s}
+.cell.over{border-color:#fff;background:rgba(255,255,255,.18)}
+.tile{position:relative;border-radius:var(--r);overflow:hidden;cursor:grab;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:6%;color:var(--t);
+  background:var(--off);border:.5px solid rgba(255,255,255,.22);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);box-shadow:var(--shadow);min-width:0;transition:outline .1s}
+.tile.on{background:var(--on);color:var(--ton);border-color:var(--onb)}
+.tile.on .lb{color:var(--tonl)}
+.tile.sel{outline:3px solid var(--acc);outline-offset:3px}
+.tile.over{outline:3px dashed #fff;outline-offset:2px}
+.tile.dim{opacity:.45}
+.tile .ic{font-size:var(--ics);line-height:1}
+.tile .nm{font-weight:600;font-size:var(--ns);margin-top:6%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.tile .lb{font-size:var(--ls);color:var(--tl);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.tile.cam{padding:0;background:#111}
+.tile.cam img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.tile.cam .cap{position:absolute;left:8%;bottom:8%;text-align:left;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.7)}
+.tile.wx{align-items:flex-start;justify-content:flex-start;text-align:left;padding:7%}
+.tile.wx .city{font-weight:600;font-size:calc(var(--ns)*1.1)}
+.tile.wx .tmp{font-size:calc(var(--ns)*3.6);font-weight:250;line-height:1;margin:4% 0}
+.tile.wx .cond{font-size:var(--ns)}
+.tile.wx .hl{font-size:var(--ls);opacity:.8}
+.tile.wx .big{position:absolute;right:8%;top:10%;font-size:calc(var(--ns)*2.6)}
+.tile.clk svg{width:100%;height:100%}
+.tile.calbar{flex-direction:row;justify-content:flex-start;gap:12px;padding:14px 20px;cursor:default;aspect-ratio:auto!important}
+.tile.calbar b{font-size:var(--ns)}
+.tile .x{position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;border:0;background:rgba(0,0,0,.55);color:#fff;display:none;cursor:pointer;font-size:14px;line-height:22px;padding:0}
+.tile.sel .x,.tile:hover .x{display:block}
+.empty{color:var(--mut);text-align:center;padding:40px 10px;font-size:13px}
+.empty i{font-size:40px;display:block;margin-bottom:6px;opacity:.6}
+.insp-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.insp-head i{font-size:26px;width:44px;height:44px;border-radius:12px;background:var(--panel2);display:grid;place-items:center}
+.insp-head .t{font-weight:650}
+.insp-head .s{font-size:11.5px;color:var(--mut);word-break:break-all}
+.sizes{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.sizes button{border:1px solid var(--line2);background:var(--panel2);border-radius:8px;padding:6px 0;cursor:pointer;font-size:12px}
+.sizes button.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.bgs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.bgs div{position:relative}.bgs div.on2{border-color:#BF5AF2}
+.bgs div .tag{position:absolute;left:3px;bottom:3px;font-size:9px;background:rgba(0,0,0,.6);border-radius:4px;padding:0 4px;color:#fff}
+.bggrp{font-size:11.5px;color:var(--mut);margin:10px 0 5px}
+.seg{display:flex;background:var(--bg);border:1px solid var(--line2);border-radius:9px;padding:2px;gap:2px;margin-bottom:6px}
+.seg button{flex:1;border:0;background:transparent;border-radius:7px;padding:5px;cursor:pointer;color:var(--mut);font-size:12px}
+.seg button.on{background:var(--panel2);color:var(--txt)}
+.clocks{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:6px}
+.clocks button{border:2px solid transparent;border-radius:12px;background:#2a3a55;cursor:pointer;padding:4px;aspect-ratio:1;position:relative;overflow:hidden}
+.clocks button{color:#fff}.clocks.light button{color:#0B0B0C}.clocks button.on{border-color:var(--acc)}
+.clocks button span{position:absolute;left:0;right:0;bottom:2px;font-size:9.5px;color:#fff;text-shadow:0 1px 2px #000}
+.clocks.light button{background:#F2F2F7}.clocks.light button span{color:#333;text-shadow:none}
+.clocks.ss button{aspect-ratio:4/3}
+.bgs div{aspect-ratio:4/3;border-radius:8px;background-size:cover;background-position:center;cursor:pointer;border:2px solid transparent}
+.bgs div.on{border-color:var(--acc)}
+.bgs label{aspect-ratio:4/3;border-radius:8px;border:1px dashed var(--line2);display:grid;place-items:center;cursor:pointer;color:var(--mut);font-size:11px;text-align:center}
+.presets{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.presets button{border:1px solid var(--line2);border-radius:10px;padding:8px 4px;cursor:pointer;font-size:12px;color:#fff}
+.calrow{display:grid;grid-template-columns:20px 1fr 36px;gap:8px;align-items:center;padding:5px 0}
+.hint{font-size:12px;color:var(--mut);background:var(--panel2);border-radius:10px;padding:10px 12px;line-height:1.5}
+.hint b{color:var(--txt)}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);background:#2C2F38;border:1px solid var(--line2);padding:10px 16px;border-radius:12px;opacity:0;transition:.25s;pointer-events:none;z-index:9;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.err{border-color:var(--bad)}
+.bk{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--line);font-size:12px}
+@media (max-width:1100px){.main{grid-template-columns:300px 1fr}.right{position:fixed;right:0;top:56px;bottom:0;width:300px;z-index:5;box-shadow:-10px 0 30px rgba(0,0,0,.4)}.right.hide{display:none}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1><i class="mdi mdi-tablet-dashboard"></i>Home View Studio</h1>
+    <span id="status" class="pill">Caricamento…</span>
+    <div class="sp"></div>
+    <button class="btn" id="undo" title="Annulla (Cmd/Ctrl+Z)"><i class="mdi mdi-undo"></i></button>
+    <a class="btn" id="open" target="_blank"><i class="mdi mdi-open-in-new"></i>Apri dashboard</a>
+    <button class="btn pri" id="apply"><i class="mdi mdi-check-circle-outline"></i>Applica alla dashboard</button>
+  </header>
+  <div class="main">
+    <aside>
+      <div class="tabs">
+        <button class="tab on" data-tab="items">Elementi</button>
+        <button class="tab" data-tab="look">Aspetto</button>
+        <button class="tab" data-tab="behavior">Comportamento</button>
+        <button class="tab" data-tab="general">Generale</button>
+      </div>
+      <div class="scroll" id="panel"></div>
+    </aside>
+    <section class="stagewrap">
+      <div class="stagebar"><i class="mdi mdi-gesture-tap-hold"></i><span>Trascina gli elementi sulla griglia · trascina un quadrato per spostarlo (sopra un altro per scambiarli) · clic per modificarlo</span></div>
+      <div class="stage"><div class="ipad" id="ipad"><div class="bgimg" id="bgimg"></div><div class="board" id="board"></div></div></div>
+    </section>
+    <aside class="right" id="right"><div class="scroll" id="insp"></div></aside>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="i18n.js"></script>
+<script>
+'use strict';
+const $ = (s, el = document) => el.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const api = async (path, opt = {}) => {
+  const r = await fetch(path, opt);
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error || r.statusText);
+  return j;
+};
+
+const DOMAINS = [
+  ['all','Tutti'],['light','Luci'],['switch','Prese/Interruttori'],['scene','Scene'],['script','Script'],['climate','Clima'],
+  ['media_player','Media'],['sensor','Sensori'],['binary_sensor','Sensori binari'],['camera','Telecamere'],['cover','Tapparelle'],
+  ['lock','Serrature'],['fan','Ventole'],['input_boolean','Interruttori virtuali'],['automation','Automazioni'],['other','Altro']
+];
+const KNOWN = new Set(DOMAINS.map(d => d[0]));
+const STYLE_NAMES = {auto:'Automatico', glass_tile:'Pulsante vetro', hw_fan_tile:'Ventola (icona che gira)', hv_door_tile:'Porta / finestra',
+  hv_climate_tile:'Clima', hv_media_tile:'Media player', hv_sensor_tile:'Valore sensore', hv_cover_tile:'Tapparella', hv_lock_tile:'Serratura', hv_state_tile:'Stato generico'};
+const TAP_NAMES = {auto:'Automatica', toggle:'Accendi / spegni', 'more-info':'Apri dettagli', none:'Nessuna', navigate:'Vai a…'};
+const DOM_ICON = {light:'lightbulb', switch:'toggle-switch-variant', scene:'palette', script:'script-text', climate:'thermostat', media_player:'cast',
+  sensor:'eye', binary_sensor:'checkbox-blank-circle-outline', camera:'cctv', cover:'window-shutter', lock:'lock', fan:'fan', input_boolean:'toggle-switch',
+  automation:'robot', weather:'weather-partly-cloudy', calendar:'calendar', person:'account', event:'gesture-tap-button', update:'package-up',
+  device_tracker:'map-marker', sun:'white-balance-sunny', zone:'map-marker-radius', button:'gesture-tap-button', number:'ray-vertex', select:'format-list-bulleted',
+  input_number:'ray-vertex', input_select:'format-list-bulleted', vacuum:'robot-vacuum', alarm_control_panel:'shield-home', remote:'remote', siren:'bullhorn'};
+const ON_STATES = ['on','playing','unlocked','open','opening','cleaning','returning','paused','cool','dry','fan_only','heat','heat_cool','auto','home'];
+const WX = {'clear-night':['Sereno','weather-night'],cloudy:['Nuvoloso','weather-cloudy'],exceptional:['Allerta','alert'],fog:['Nebbia','weather-fog'],
+  hail:['Grandine','weather-hail'],lightning:['Temporale','weather-lightning'],'lightning-rainy':['Temporale','weather-lightning-rainy'],
+  partlycloudy:['Poco nuvoloso','weather-partly-cloudy'],pouring:['Pioggia forte','weather-pouring'],rainy:['Pioggia','weather-rainy'],
+  snowy:['Neve','weather-snowy'],'snowy-rainy':['Nevischio','weather-snowy-rainy'],sunny:['Soleggiato','weather-sunny'],windy:['Ventoso','weather-windy'],
+  'windy-variant':['Ventoso','weather-windy-variant']};
+const PRESETS = {
+  'Vetro': {tile_opacity:.16, tile_on_color:'#FFFFFF', tile_on_opacity:.62, text_color:'#FFFFFF', text_on_color:'#1C1C1E', blur:12, radius:24, accent:'#4D7DB8', shadow:true},
+  'Notte': {tile_opacity:.08, tile_on_color:'#FFD60A', tile_on_opacity:.85, text_color:'#E5E5EA', text_on_color:'#1C1C1E', blur:20, radius:22, accent:'#1C2541', shadow:true},
+  'Pastello': {tile_opacity:.28, tile_on_color:'#FF9F0A', tile_on_opacity:.78, text_color:'#FFFFFF', text_on_color:'#FFFFFF', blur:8, radius:30, accent:'#BF5AF2', shadow:false},
+};
+
+let L = null;               // layout
+let CLOCK = null, CLOCK_SRC = '', bgMode = 'day';
+function resolveLang(v) {
+  if (v === 'it' || v === 'en') return v;
+  let l = '';
+  try { l = window.parent.document.querySelector('home-assistant').hass.language || ''; } catch (e) { /* not embedded */ }
+  l = l || navigator.language || 'en';
+  return l.toLowerCase().startsWith('it') ? 'it' : 'en';
+}
+function applyLang(initial) {
+  UI_LANG = resolveLang(L && L.language);
+  document.documentElement.lang = UI_LANG;
+  try { CLOCK = CLOCK_SRC ? new Function('d', 'STYLE', 'ACC', 'FG', 'W', 'BG', CLOCK_SRC.replace(/'it-IT'/g, UI_LANG === 'en' ? "'en-US'" : "'it-IT'")) : null; } catch (e) { CLOCK = null; }
+  translateDOM(document.body);
+  if (!initial) { renderPanel(); renderBoard(); renderInsp(); }
+}
+let trPending = false;
+new MutationObserver(() => {
+  if (trPending) return; trPending = true;
+  queueMicrotask(() => { trPending = false; translateDOM(document.body); });
+}).observe(document.body, {childList: true, subtree: true, characterData: true});
+const CLOCK_NAMES = {original:'Originale', classic:'Classico', minimal:'Minimal', bold:'Numeri grandi', digital:'Digitale', stacked:'Ore e minuti', solar:'Solare'};
+function clockHTML(style, acc, fg, w, bg) { if (!CLOCK) return ''; try { return CLOCK(new Date(), style, acc, fg, w || 100, !!bg); } catch (e) { return ''; } }
+let E = [], EM = {};        // entities list + map
+let BGS = [], BACKUPS = [];
+let sel = -1, tab = 'items';
+let filt = {q:'', dom:'all', area:'', hidden:false};
+let dirty = false, saveT = null, hist = [];
+
+// ---------------------------------------------------------------- utils
+function toast(msg, err) {
+  const t = $('#toast'); t.innerHTML = msg; t.className = 'toast show' + (err ? ' err' : '');
+  clearTimeout(t._t); t._t = setTimeout(() => t.className = 'toast', err ? 5000 : 2600);
+}
+function status() {
+  const s = $('#status');
+  if (dirty) { s.className = 'pill dirty'; s.textContent = 'Modifiche non ancora applicate'; }
+  else { s.className = 'pill ok'; s.textContent = 'Dashboard aggiornata'; }
+}
+function snapshot() { hist.push(JSON.stringify(L)); if (hist.length > 60) hist.shift(); }
+function changed(skipRender) {
+  dirty = true; status();
+  clearTimeout(saveT);
+  saveT = setTimeout(() => api('api/layout', {method:'POST', body: JSON.stringify(L)}).catch(e => toast('Salvataggio fallito: ' + esc(e.message), true)), 600);
+  if (!skipRender) renderBoard();
+}
+function edit(fn, skipRender) { snapshot(); fn(); changed(skipRender); }
+const dom = (id) => (id || '').split('.')[0];
+function autoStyle(t) {
+  const e = EM[t.entity] || {}; const d = dom(t.entity); const icon = t.icon || e.icon || '';
+  if (d === 'fan' || (d === 'switch' && icon.includes('fan'))) return 'hw_fan_tile';
+  if (['light','switch','input_boolean','scene','script','automation','siren','humidifier'].includes(d)) return 'glass_tile';
+  if (d === 'binary_sensor') return ['door','window','garage_door','opening'].includes(e.device_class) ? 'hv_door_tile' : 'hv_state_tile';
+  return {climate:'hv_climate_tile', media_player:'hv_media_tile', sensor:'hv_sensor_tile', cover:'hv_cover_tile', lock:'hv_lock_tile'}[d] || 'hv_state_tile';
+}
+function fmtNum(v) { const n = Number(v); return isNaN(n) ? v : (Math.round(n * 10) / 10).toLocaleString('it-IT'); }
+function dynLabel(style, e) {
+  if (!e) return 'Entità non trovata';
+  const s = e.state, a = e.attrs || {};
+  if (s === 'unavailable') return 'Non risponde';
+  switch (style) {
+    case 'hv_door_tile': return s === 'on' ? 'Aperta' : 'Chiusa';
+    case 'hv_climate_tile': { const m = {off:'Spento',cool:'Raffredda',dry:'Deumidifica',fan_only:'Ventola',heat:'Riscalda',heat_cool:'Auto',auto:'Auto'}; let r = m[s] || s; if (s !== 'off' && a.temperature) r = a.temperature + '° · ' + r; return r; }
+    case 'hv_media_tile': { if (s === 'playing') return a.media_title || 'In riproduzione'; return {off:'Spento',standby:'Spento',idle:'Inattivo',on:'Acceso',paused:'In pausa'}[s] || s; }
+    case 'hv_sensor_tile': { const u = e.unit; const v = fmtNum(s); return u ? v + (u === '%' || u.startsWith('°') ? '' : ' ') + u : v; }
+    case 'hv_cover_tile': return ({open:'Aperta',closed:'Chiusa',opening:'In apertura',closing:'In chiusura'}[s] || s) + (a.current_position != null && s === 'open' ? ' · ' + a.current_position + '%' : '');
+    case 'hv_lock_tile': return {locked:'Chiusa',unlocked:'Aperta',jammed:'Bloccata'}[s] || s;
+    case 'hv_state_tile': return {on:'Acceso',off:'Spento',open:'Aperto',closed:'Chiuso',home:'A casa',not_home:'Fuori',unknown:'—',idle:'Inattivo'}[s] || (s + (e.unit ? ' ' + e.unit : ''));
+  }
+  return '';
+}
+function iconFor(t, style) {
+  const e = EM[t.entity];
+  if (style === 'hv_door_tile' && !t.icon) {
+    const o = e && e.state === 'on', dc = e && e.device_class;
+    if (dc === 'window') return o ? 'window-open-variant' : 'window-closed-variant';
+    if (dc === 'garage_door') return o ? 'garage-open' : 'garage';
+    return o ? 'door-open' : 'door-closed';
+  }
+  if (style === 'hv_lock_tile' && !t.icon) return e && e.state === 'unlocked' ? 'lock-open-variant-outline' : 'lock-outline';
+  const ic = t.icon || (e && e.icon) || ('mdi:' + (DOM_ICON[dom(t.entity)] || 'help-circle-outline'));
+  return ic.replace(/^mdi:/, '');
+}
+function occupied(skip) {
+  const m = new Map();
+  L.tiles.forEach((t, i) => { if (i === skip) return; for (let y = t.y; y < t.y + t.h; y++) for (let x = t.x; x < t.x + t.w; x++) m.set(x + ',' + y, i); });
+  return m;
+}
+function fits(x, y, w, h, skip) {
+  const cols = L.grid.columns; if (x < 0 || y < 0 || x + w > cols) return false;
+  const m = occupied(skip);
+  for (let yy = y; yy < y + h; yy++) for (let xx = x; xx < x + w; xx++) if (m.has(xx + ',' + yy)) return false;
+  return true;
+}
+function firstFree(w, h) {
+  for (let y = 0; y < 50; y++) for (let x = 0; x <= L.grid.columns - w; x++) if (fits(x, y, w, h)) return {x, y};
+  return {x: 0, y: 0};
+}
+function rowsUsed() { return Math.max(0, ...L.tiles.map(t => t.y + t.h)); }
+
+// ---------------------------------------------------------------- new tiles
+function newTile(kind, entity) {
+  if (kind === 'weather') return {kind, w:2, h:2};
+  if (kind === 'clock') return {kind, w:1, h:1};
+  if (kind === 'group') return {kind, gid: Date.now().toString(36).slice(-5), name: entity && entity.name || tr('Gruppo'), icon: entity && entity.icon || 'mdi:lightbulb-group-outline', entities: entity && entity.entities || [], hold:'toggle_all', w:1, h:1};
+  if (kind === 'camera') { const e = EM[entity || L.sources.camera]; return {kind, entity: entity || L.sources.camera, name: e ? e.name : tr('Telecamera'), label:'Live', w:1, h:1}; }
+  const e = EM[entity] || {};
+  const t = {kind:'entity', entity, name: e.name || entity, w:1, h:1};
+  if (e.area && !['sensor','climate','media_player','binary_sensor','cover','lock'].includes(dom(entity)) && dom(entity) !== 'scene' && dom(entity) !== 'script') t.label = e.area;
+  return t;
+}
+function addMembers(i, ids) {
+  const g = L.tiles[i]; const cur = new Set(g.entities || []);
+  const nu = ids.filter(id => id && !cur.has(id));
+  if (!nu.length) return toast('Già presenti nel gruppo');
+  edit(() => { g.entities = [...(g.entities || []), ...nu]; sel = i; });
+  renderInsp(); renderPanel(); toast(`${nu.length === 1 ? esc((EM[nu[0]] || {}).name || nu[0]) + ' aggiunto' : nu.length + ' dispositivi aggiunti'} a «${esc(g.name)}»`);
+}
+function addTile(t, x, y) {
+  if (x == null) ({x, y} = firstFree(t.w, t.h));
+  if (!fits(x, y, t.w, t.h)) {
+    // try shrinking to 1x1 before giving up
+    if ((t.w > 1 || t.h > 1) && fits(x, y, 1, 1) && t.kind !== 'weather') { t.w = 1; t.h = 1; }
+    else return toast('Non c\'è spazio lì: libera le caselle o scegli un\'altra posizione', true);
+  }
+  edit(() => { t.x = x; t.y = y; L.tiles.push(t); sel = L.tiles.length - 1; });
+  renderInsp(); renderPanel();
+}
+
+// ---------------------------------------------------------------- preview
+function themeVars() {
+  const th = L.theme, rgba = (h, a) => { h = (h || '#fff').replace('#',''); if (h.length === 3) h = h.split('').map(c => c + c).join(''); const n = parseInt(h, 16); return `rgba(${n>>16&255},${n>>8&255},${n&255},${Math.max(0,Math.min(1,a))})`; };
+  const a = +th.tile_opacity, oa = +th.tile_on_opacity;
+  const w = $('#ipad').clientWidth || 1000, k = w / 1180;
+  return {
+    '--off': `linear-gradient(135deg, ${rgba('#fff', a)} 0%, ${rgba('#fff', a*.31)} 50%, ${rgba('#fff', a*.19)} 100%)`,
+    '--on': `linear-gradient(135deg, ${rgba(th.tile_on_color, oa)} 0%, ${rgba(th.tile_on_color, oa*.76)} 55%, ${rgba(th.tile_on_color, oa*.66)} 100%)`,
+    '--onb': rgba(th.tile_on_color, .35),
+    '--t': th.text_color, '--tl': rgba(th.text_color, .82), '--ton': th.text_on_color, '--tonl': rgba(th.text_on_color, .75),
+    '--blur': +th.blur ? `blur(${th.blur * k}px) saturate(110%)` : 'none',
+    '--shadow': th.shadow ? 'inset 1px 1px 0 rgba(255,255,255,.28), inset 2px 2px 8px rgba(255,255,255,.08), inset -1px -1px 4px rgba(0,0,0,.14), 0 10px 26px rgba(0,0,0,.22)' : 'inset 1px 1px 0 rgba(255,255,255,.22)',
+    '--r': (th.radius * k) + 'px', '--ns': (th.name_size * k) + 'px', '--ls': (th.label_size * k) + 'px', '--ics': `calc(${th.icon_size} * 0.01 * var(--cell))`,
+    '--k': k,
+  };
+}
+function clockSVG() {
+  const d = new Date(), h = d.getHours() % 12, m = d.getMinutes();
+  let marks = '';
+  for (let i = 0; i < 60; i++) { const a = i*Math.PI/30, big = i%5===0, r1 = big?43:45;
+    marks += `<line x1="${50+r1*Math.sin(a)}" y1="${50-r1*Math.cos(a)}" x2="${50+47.5*Math.sin(a)}" y2="${50-47.5*Math.cos(a)}" stroke="currentColor" stroke-opacity="${big?.9:.45}" stroke-width="${big?1.4:.7}" stroke-linecap="round"/>`; }
+  const hand = (deg, len, w) => `<line x1="50" y1="50" x2="${50+len*Math.sin(deg*Math.PI/180)}" y2="${50-len*Math.cos(deg*Math.PI/180)}" stroke="currentColor" stroke-width="${w}" stroke-linecap="round"/>`;
+  return `<svg viewBox="0 0 100 100">${marks}${hand((h+m/60)*30,22,3)}${hand(m*6,34,2.2)}<circle cx="50" cy="50" r="2.2" fill="currentColor"/></svg>`;
+}
+function tileHTML(t, i) {
+  const k = t.kind;
+  if (k === 'weather') {
+    const e = EM[L.sources.weather]; const [cn, ci] = WX[e && e.state] || ['—','weather-partly-cloudy'];
+    const tmp = e && e.attrs && e.attrs.temperature != null ? Math.round(e.attrs.temperature) + '°' : '–°';
+    return {cls:'wx', html:`<div class="city">Casa</div><div class="tmp">${tmp}</div><div class="cond">${cn}</div><i class="mdi mdi-${ci} big"></i>`};
+  }
+  if (k === 'clock') return {cls:'clk', html: L.theme.clock_home && L.theme.clock_home !== 'original' ? clockHTML(L.theme.clock_home, L.theme.accent, L.theme.text_color) : clockSVG()};
+  if (k === 'camera') {
+    const e = EM[t.entity];
+    const img = e && e.picture ? `<img src="${esc(e.picture)}" alt="" onerror="this.remove()">` : '';
+    return {cls:'cam', html:`${img}<div class="cap"><div class="nm" data-raw style="margin:0">${esc(t.name || 'Telecamera')}</div><div class="lb" style="color:#fff">${esc(t.label || 'Live')}</div></div>`};
+  }
+  if (k === 'group') {
+    const sts = (t.entities || []).map(id => EM[id]).filter(Boolean);
+    const n = sts.filter(s => ON_STATES.includes(s.state)).length;
+    let label = t.label || (!sts.length ? 'Vuoto' : !n ? (sts.length === 1 ? 'Spento' : 'Tutto spento') : (n === sts.length && n > 1 ? 'Tutti accesi' : n + (n === 1 ? ' acceso' : ' accesi') + ' su ' + sts.length));
+    return {cls: n ? 'on' : '', html:`<span class="badge"><i class="mdi mdi-dots-grid"></i> ${(t.entities || []).length}</span><i class="mdi mdi-${esc((t.icon || 'mdi:lightbulb-group-outline').replace(/^mdi:/, ''))} ic"></i><div class="nm" data-raw>${esc(t.name || tr('Gruppo'))}</div><div class="lb">${esc(label)}</div>`};
+  }
+  const e = EM[t.entity];
+  const style = t.style && t.style !== 'auto' ? t.style : autoStyle(t);
+  let label = t.label || dynLabel(style, e);
+  if (!t.label && style === 'glass_tile') label = dom(t.entity) === 'scene' ? 'Scena' : dom(t.entity) === 'script' ? 'Script' : '';
+  const on = e && ON_STATES.includes(e.state);
+  const icon = iconFor(t, style);
+  const spin = style === 'hw_fan_tile' && on ? 'style="animation:spin 1.2s linear infinite"' : '';
+  return {cls: (on ? 'on' : '') + (!e || e.state === 'unavailable' ? ' dim' : ''),
+    html:`<i class="mdi mdi-${esc(icon)} ic" ${spin}></i><div class="nm" data-raw>${esc(t.name || (e ? e.name : t.entity))}</div>${label ? `<div class="lb">${esc(label)}</div>` : ''}`};
+}
+function renderBoard() {
+  const b = $('#board'), th = L.theme, cols = L.grid.columns;
+  $('#bgimg').style.backgroundImage = th.background ? `url("${th.background}")` : 'none';
+  $('#bgimg').style.opacity = (th.background_opacity ?? 100) / 100;
+  const vars = themeVars(); for (const [k, v] of Object.entries(vars)) b.style.setProperty(k, v);
+  const W = $('#ipad').clientWidth || 1000, k = vars['--k'];
+  const maxW = Math.min(W, th.max_width * k + W * 0.05);
+  const gap = th.gap * k, pad = W * 0.025;
+  const cell = (Math.min(W, maxW) - pad * 2 - gap * (cols - 1)) / cols;
+  b.style.setProperty('--cell', cell + 'px');
+  Object.assign(b.style, {gridTemplateColumns: `repeat(${cols}, ${cell}px)`, gridAutoRows: cell + 'px', gap: gap + 'px', justifyContent: 'center', padding: pad + 'px'});
+  const rows = rowsUsed() + 1;
+  let h = '';
+  const occ = occupied();
+  for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++)
+    if (!occ.has(x + ',' + y)) h += `<div class="cell" data-x="${x}" data-y="${y}" style="grid-column:${x+1};grid-row:${y+1}"></div>`;
+  L.tiles.forEach((t, i) => {
+    if (t.x >= cols) return;
+    const r = tileHTML(t, i);
+    h += `<div class="tile ${r.cls} ${i === sel ? 'sel' : ''}" draggable="true" data-i="${i}" style="grid-column:${t.x+1}/span ${Math.min(t.w, cols - t.x)};grid-row:${t.y+1}/span ${t.h}">${r.html}<button class="x" data-del="${i}" title="Rimuovi">×</button></div>`;
+  });
+  if (L.grid.calendar_bar) h += `<div class="tile calbar" style="grid-column:1/-1;grid-row:${rows+1};height:${cell*0.55}px"><i class="mdi mdi-calendar-blank-outline" style="font-size:calc(var(--ns)*1.3)"></i><b>Prossimi</b><span class="lb" data-raw style="margin:0">${esc((L.sources.calendars||[]).map(c => c.name).join(' · ') || 'nessun calendario')}</span></div>`;
+  b.innerHTML = h;
+  const hidden = L.tiles.filter(t => t.x >= cols).length;
+  if (hidden) toast(`${hidden} elementi sono fuori dalla griglia (colonne ridotte): aumenta le colonne o spostali`, true);
+}
+
+// drag & drop on the board
+let drag = null;
+document.addEventListener('dragstart', (ev) => {
+  const tEl = ev.target.closest && ev.target.closest('.tile[data-i]');
+  const nEl = ev.target.closest && ev.target.closest('[data-new]');
+  if (tEl) drag = {src:'tile', i:+tEl.dataset.i};
+  else if (nEl) drag = {src:'new', kind:nEl.dataset.new, entity:nEl.dataset.entity};
+  else return;
+  ev.dataTransfer.effectAllowed = 'move'; ev.dataTransfer.setData('text/plain', 'hv');
+});
+document.addEventListener('dragend', () => { drag = null; document.querySelectorAll('.over').forEach(e => e.classList.remove('over')); });
+const board = $('#board');
+board.addEventListener('dragover', (ev) => {
+  if (!drag) return; const tg = ev.target.closest('.cell, .tile[data-i]'); if (!tg) return;
+  ev.preventDefault(); document.querySelectorAll('.over').forEach(e => e !== tg && e.classList.remove('over')); tg.classList.add('over');
+});
+board.addEventListener('dragleave', (ev) => { const tg = ev.target.closest('.cell, .tile'); if (tg) tg.classList.remove('over'); });
+board.addEventListener('drop', (ev) => {
+  ev.preventDefault(); if (!drag) return;
+  const tg = ev.target.closest('.cell, .tile[data-i]'); if (!tg) return;
+  let x, y, other = null;
+  if (tg.classList.contains('cell')) { x = +tg.dataset.x; y = +tg.dataset.y; }
+  else { other = +tg.dataset.i; x = L.tiles[other].x; y = L.tiles[other].y; }
+  if (drag.src === 'new') {
+    if (other != null && L.tiles[other].kind === 'group' && drag.entity) { addMembers(other, [drag.entity]); drag = null; return; }
+    if (other != null) return toast('Quella casella è occupata: trascina su una casella vuota (o sopra un gruppo per aggiungerla)', true);
+    addTile(newTile(drag.kind, drag.entity), x, y);
+  } else {
+    const i = drag.i, t = L.tiles[i];
+    if (other === i) return;
+    if (other != null) {
+      const o = L.tiles[other];
+      edit(() => { const [tx, ty] = [t.x, t.y]; t.x = o.x; t.y = o.y; o.x = tx; o.y = ty; });
+      if (!fits(t.x, t.y, t.w, t.h, i) || !fits(o.x, o.y, o.w, o.h, other)) { undo(true); return toast('Dimensioni diverse: non posso scambiarli qui', true); }
+    } else {
+      if (!fits(x, y, t.w, t.h, i)) return toast('Non c\'è spazio per questa dimensione lì', true);
+      edit(() => { t.x = x; t.y = y; });
+    }
+    sel = i; renderInsp();
+  }
+  drag = null;
+});
+board.addEventListener('click', (ev) => {
+  const del = ev.target.closest('[data-del]');
+  if (del) { removeTile(+del.dataset.del); return; }
+  const tEl = ev.target.closest('.tile[data-i]');
+  sel = tEl ? +tEl.dataset.i : -1; renderBoard(); renderInsp();
+});
+function removeTile(i) { edit(() => { L.tiles.splice(i, 1); sel = -1; }); renderInsp(); renderPanel(); }
+function undo(silent) {
+  if (!hist.length) return; L = JSON.parse(hist.pop()); sel = Math.min(sel, L.tiles.length - 1);
+  changed(); renderInsp(); renderPanel(); if (!silent) toast('Modifica annullata');
+}
+$('#undo').onclick = () => undo();
+document.addEventListener('keydown', (ev) => {
+  const typing = ['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName);
+  if ((ev.metaKey || ev.ctrlKey) && ev.key === 'z' && !typing) { ev.preventDefault(); undo(); }
+  if ((ev.key === 'Delete' || ev.key === 'Backspace') && sel >= 0 && !typing) { ev.preventDefault(); removeTile(sel); }
+  if (ev.key === 'Escape') { sel = -1; renderBoard(); renderInsp(); }
+});
+window.addEventListener('resize', () => renderBoard());
+
+// ---------------------------------------------------------------- inspector
+function opt(v, label, cur) { return `<option value="${esc(v)}" ${v === cur ? 'selected' : ''}>${esc(label)}</option>`; }
+function entOptions(filterFn, cur) {
+  return E.filter(filterFn).map(e => opt(e.entity_id, `${e.name} (${e.entity_id})`, cur)).join('') +
+    (cur && !EM[cur] ? opt(cur, cur + ' (non trovata)', cur) : '');
+}
+function renderInsp() {
+  const el = $('#insp');
+  $('#right').classList.toggle('hide', sel < 0);
+  if (sel < 0 || !L.tiles[sel]) {
+    el.innerHTML = `<div class="empty"><i class="mdi mdi-cursor-default-click-outline"></i>Seleziona un quadrato nella griglia per modificarlo.</div>
+      <div class="hint"><b>Suggerimenti</b><br>• Trascina un'entità dalla colonna di sinistra su una casella vuota, o premi <b>+</b>.<br>• Trascina un quadrato su un altro della stessa misura per scambiarli.<br>• <b>Canc</b> elimina il quadrato selezionato, <b>Cmd/Ctrl+Z</b> annulla.<br>• Le modifiche vengono salvate qui subito; premi <b>Applica alla dashboard</b> per pubblicarle sull'iPad.</div>`;
+    return;
+  }
+  const t = L.tiles[sel], e = EM[t.entity];
+  const kindName = {weather:'Meteo', clock:'Orologio', camera:'Telecamera', entity:'Dispositivo', group:'Gruppo'}[t.kind];
+  const icon = t.kind === 'entity' ? iconFor(t, t.style && t.style !== 'auto' ? t.style : autoStyle(t)) : t.kind === 'group' ? (t.icon || 'mdi:lightbulb-group-outline').replace(/^mdi:/, '') : {weather:'weather-partly-cloudy', clock:'clock-outline', camera:'cctv'}[t.kind];
+  let h = `<div class="insp-head"><i class="mdi mdi-${esc(icon)}"></i><div><div class="t" data-raw>${esc(t.name || kindName)}</div><div class="s">${esc(kindName)}${t.entity ? ' · ' + esc(t.entity) : ''}${e ? ' · stato: ' + esc(e.state) : ''}</div></div></div>`;
+  if (t.kind === 'entity') {
+    h += `<div class="field"><label>Entità</label><select class="in" data-k="entity">${entOptions(x => !x.hidden || x.entity_id === t.entity, t.entity)}</select></div>`;
+  }
+  if (t.kind === 'camera') {
+    h += `<div class="field"><label>Telecamera</label><select class="in" data-k="entity">${entOptions(x => x.domain === 'camera', t.entity)}</select></div>`;
+  }
+  if (t.kind === 'entity' || t.kind === 'camera') {
+    h += `<div class="field"><label>Nome (testo grande)</label><input class="in" data-k="name" value="${esc(t.name || '')}" placeholder="${esc(e ? e.name : '')}"></div>
+      <div class="field"><label>Etichetta (testo piccolo)</label><input class="in" data-k="label" value="${esc(t.label || '')}" placeholder="vuota = stato automatico"></div>`;
+  }
+  if (t.kind === 'entity') {
+    h += `<div class="field"><label>Icona <a href="https://pictogrammers.com/library/mdi/" target="_blank" style="color:var(--acc)">sfoglia</a></label>
+        <div class="row"><input class="in" data-k="icon" value="${esc(t.icon || '')}" placeholder="${esc((e && e.icon) || 'automatica, es. mdi:lamp')}"><i class="mdi mdi-${esc(icon)}" style="flex:0 0 28px;font-size:24px;text-align:center"></i></div></div>
+      <div class="field"><label>Stile del quadrato</label><select class="in" data-k="style">${Object.entries(STYLE_NAMES).map(([v, n]) => opt(v, v === 'auto' ? `Automatico (${STYLE_NAMES[autoStyle(t)]})` : n, t.style || 'auto')).join('')}</select></div>
+      <div class="field"><label>Azione al tocco</label><select class="in" data-k="tap">${Object.entries(TAP_NAMES).map(([v, n]) => opt(v, n, t.tap || 'auto')).join('')}</select></div>`;
+    if (t.tap === 'navigate') h += `<div class="field"><label>Destinazione</label><input class="in" data-k="navigation_path" value="${esc(t.navigation_path || '')}" placeholder="/${esc(L.dashboard.url_path)}/cameras oppure #weather"></div>`;
+  }
+  if (t.kind === 'group') {
+    const mem = t.entities || [];
+    const doms = [...new Set(E.map(x => x.domain))].filter(d => KNOWN.has(d)).sort();
+    const areas = [...new Set(E.map(x => x.area).filter(Boolean))].sort();
+    h += `<div class="field"><label>Nome</label><input class="in" data-k="name" value="${esc(t.name || '')}"></div>
+      <div class="field"><label>Icona <a href="https://pictogrammers.com/library/mdi/" target="_blank" style="color:var(--acc)">sfoglia</a></label>
+        <div class="row"><input class="in" data-k="icon" value="${esc(t.icon || '')}" placeholder="mdi:lightbulb-group-outline"><i class="mdi mdi-${esc(icon)}" style="flex:0 0 28px;font-size:24px;text-align:center"></i></div></div>
+      <div class="field"><label>Etichetta</label><input class="in" data-k="label" value="${esc(t.label || '')}" placeholder="vuota = «2 accesi su 5»"></div>
+      <div class="field"><label>Pressione prolungata sul quadrato</label><select class="in" data-k="hold">${opt('toggle_all', 'Accendi / spegni tutto', t.hold || 'toggle_all')}${opt('none', 'Nessuna', t.hold || 'toggle_all')}</select></div>
+      <h3>Dispositivi nel gruppo (${mem.length})</h3>
+      ${mem.length ? mem.map((id, j) => { const x = EM[id]; return `<div class="mem"><i class="mdi mdi-${esc(((x && x.icon) || 'mdi:' + (DOM_ICON[dom(id)] || 'help-circle-outline')).replace(/^mdi:/, ''))}"></i>
+        <div style="min-width:0" data-raw><div class="n">${esc(x ? x.name : id)}</div><div class="s">${esc(x ? (x.area ? x.area + ' · ' : '') + x.state : 'non trovata')}</div></div>
+        <div class="b"><button data-mup="${j}" title="Su"><i class="mdi mdi-chevron-up"></i></button><button data-mdown="${j}" title="Giù"><i class="mdi mdi-chevron-down"></i></button><button data-mdel="${j}" title="Rimuovi"><i class="mdi mdi-close"></i></button></div></div>`; }).join('')
+        : '<div class="count">Nessun dispositivo. Aggiungili qui sotto, con il <b>+</b> nella lista a sinistra, o trascinandoli sul quadrato.</div>'}
+      <div class="field" style="margin-top:10px"><label>Aggiungi un dispositivo</label><select class="in" id="gadd"><option value="">Scegli…</option>${entOptions(x => !x.hidden && !mem.includes(x.entity_id), '')}</select></div>
+      <div class="field"><label>Aggiungi in blocco</label><div class="row"><select class="in" id="gdom">${doms.map(d => opt(d, (DOMAINS.find(x => x[0] === d) || [d, d])[1], 'light')).join('')}</select>
+        <select class="in" id="garea"><option value="">Tutte le stanze</option>${areas.map(a => opt(a, a, '')).join('')}</select></div>
+        <button class="btn sm" id="gbulk" style="margin-top:6px"><i class="mdi mdi-playlist-plus"></i>Aggiungi tutti</button>
+        ${mem.length ? '<button class="btn sm danger" id="gclear" style="margin-top:6px">Svuota gruppo</button>' : ''}</div>
+      <div class="hint">Sull'iPad: <b>tocco</b> = apre il popup con tutti i dispositivi e i pulsanti «Accendi/Spegni tutto»; <b>pressione prolungata</b> = accende o spegne tutto il gruppo.</div>`;
+  }
+  const sizes = t.kind === 'weather' ? [[2,2],[3,2],[2,3],[3,3]] : [[1,1],[2,1],[1,2],[2,2]];
+  h += `<div class="field"><label>Dimensione (colonne × righe)</label><div class="sizes">${sizes.map(([w, hh]) => `<button data-size="${w},${hh}" class="${t.w === w && t.h === hh ? 'on' : ''}">${w}×${hh}</button>`).join('')}</div></div>
+    <div class="field"><label>Posizione</label><div class="row">
+      <button class="btn sm" data-mv="-1,0"><i class="mdi mdi-arrow-left"></i></button><button class="btn sm" data-mv="0,-1"><i class="mdi mdi-arrow-up"></i></button>
+      <button class="btn sm" data-mv="0,1"><i class="mdi mdi-arrow-down"></i></button><button class="btn sm" data-mv="1,0"><i class="mdi mdi-arrow-right"></i></button></div>
+      <div class="lbl">colonna ${t.x + 1}, riga ${t.y + 1}</div></div>
+    <div class="row" style="margin-top:14px"><button class="btn" id="dup"><i class="mdi mdi-content-copy"></i>Duplica</button><button class="btn danger" id="del"><i class="mdi mdi-trash-can-outline"></i>Elimina</button></div>`;
+  el.innerHTML = h;
+  el.querySelectorAll('[data-k]').forEach(inp => {
+    const k = inp.dataset.k;
+    const apply = () => {
+      edit(() => {
+        let v = inp.value.trim();
+        if (k === 'icon' && v && !v.includes(':')) v = 'mdi:' + v;
+        if (v === '' || (v === 'auto' && (k === 'style' || k === 'tap'))) delete t[k]; else t[k] = v;
+        if (k === 'entity' && EM[v]) { t.name = EM[v].name; }
+      });
+      if (inp.tagName === 'SELECT') renderInsp();
+      renderPanel();
+    };
+    inp.addEventListener(inp.tagName === 'SELECT' ? 'change' : 'input', apply);
+  });
+  el.querySelectorAll('[data-size]').forEach(b => b.onclick = () => {
+    const [w, hh] = b.dataset.size.split(',').map(Number);
+    if (!fits(t.x, t.y, w, hh, sel)) return toast('Non c\'è spazio: sposta prima i quadrati vicini', true);
+    edit(() => { t.w = w; t.h = hh; }); renderInsp();
+  });
+  el.querySelectorAll('[data-mv]').forEach(b => b.onclick = () => {
+    const [dx, dy] = b.dataset.mv.split(',').map(Number);
+    if (!fits(t.x + dx, t.y + dy, t.w, t.h, sel)) return toast('Casella occupata o fuori griglia', true);
+    edit(() => { t.x += dx; t.y += dy; }); renderInsp();
+  });
+  if (t.kind === 'group') {
+    const mv = (j, d) => edit(() => { const a = t.entities; const k = j + d; if (k < 0 || k >= a.length) return; [a[j], a[k]] = [a[k], a[j]]; });
+    el.querySelectorAll('[data-mup]').forEach(b => b.onclick = () => { mv(+b.dataset.mup, -1); renderInsp(); });
+    el.querySelectorAll('[data-mdown]').forEach(b => b.onclick = () => { mv(+b.dataset.mdown, 1); renderInsp(); });
+    el.querySelectorAll('[data-mdel]').forEach(b => b.onclick = () => { edit(() => t.entities.splice(+b.dataset.mdel, 1)); renderInsp(); renderPanel(); });
+    $('#gadd').onchange = (ev) => ev.target.value && addMembers(sel, [ev.target.value]);
+    $('#gbulk').onclick = () => {
+      const d = $('#gdom').value, a = $('#garea').value;
+      addMembers(sel, E.filter(x => !x.hidden && x.domain === d && (!a || x.area === a)).map(x => x.entity_id));
+    };
+    if ($('#gclear')) $('#gclear').onclick = (ev) => { if (!confirmInline(ev.currentTarget)) return; edit(() => t.entities = []); renderInsp(); renderPanel(); };
+  }
+  $('#dup').onclick = () => { const c = JSON.parse(JSON.stringify(t)); if (c.kind === 'weather') { c.w = c.h = 2; } addTile(c); };
+  $('#del').onclick = () => removeTile(sel);
+}
+
+// ---------------------------------------------------------------- left panel
+document.querySelectorAll('.tab').forEach(b => b.onclick = () => {
+  document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x === b)); tab = b.dataset.tab; renderPanel();
+});
+function sw(path, title, sub) {
+  const v = path.split('.').reduce((o, k) => o[k], L);
+  return `<div class="sw"><div>${title}${sub ? `<small>${sub}</small>` : ''}</div><label class="toggle"><input type="checkbox" data-p="${path}" ${v ? 'checked' : ''}><span></span></label></div>`;
+}
+function rng(path, title, min, max, step, unit = '') {
+  const v = path.split('.').reduce((o, k) => o[k], L);
+  return `<div class="field"><label>${title}</label><div class="range"><input type="range" data-p="${path}" min="${min}" max="${max}" step="${step}" value="${v}"><output>${v}${unit}</output></div></div>`;
+}
+function col(path, title) {
+  const v = path.split('.').reduce((o, k) => o[k], L);
+  return `<div class="field"><label>${title}</label><div class="row"><input type="color" data-p="${path}" value="${esc(v)}"><input class="in" data-p="${path}" value="${esc(v)}"></div></div>`;
+}
+function setPath(path, v) { const ks = path.split('.'); const last = ks.pop(); ks.reduce((o, k) => o[k], L)[last] = v; }
+function bindPaths(el) {
+  el.querySelectorAll('[data-p]').forEach(inp => {
+    const p = inp.dataset.p, ev = inp.type === 'checkbox' || inp.tagName === 'SELECT' ? 'change' : 'input';
+    let first = true;
+    inp.addEventListener(ev, () => {
+      let v = inp.type === 'checkbox' ? inp.checked : inp.value;
+      if (inp.type === 'range' || inp.type === 'number') v = Number(v);
+      if (first || inp.type !== 'range') snapshot(); first = false;
+      setPath(p, v);
+      if (inp.type === 'range' && inp.nextElementSibling) inp.nextElementSibling.textContent = inp.nextElementSibling.textContent.replace(/^[\d.]+/, v);
+      if (inp.type === 'color' || (inp.classList.contains('in') && /^#[0-9a-f]{6}$/i.test(v))) el.querySelectorAll(`[data-p="${p}"]`).forEach(o => o !== inp && (o.value = v));
+      changed();
+      if (p === 'dashboard.url_path') setOpen();
+      if (p === 'grid.calendar_bar') renderPanel();
+      if (p === 'language') applyLang();
+    });
+    if (inp.type === 'range') inp.addEventListener('change', () => { first = true; });
+  });
+}
+function renderPanel() {
+  const el = $('#panel');
+  if (tab === 'items') {
+    const areas = [...new Set(E.map(e => e.area).filter(Boolean))].sort();
+    const used = new Set(L.tiles.flatMap(t => [t.entity, ...(t.entities || [])]).filter(Boolean));
+    const gsel = sel >= 0 && L.tiles[sel] && L.tiles[sel].kind === 'group' ? L.tiles[sel] : null;
+    const filtered = filt.dom !== 'all' || filt.area || filt.q;
+    const q = filt.q.toLowerCase();
+    const list = E.filter(e => (filt.hidden || !e.hidden)
+      && (filt.dom === 'all' || (filt.dom === 'other' ? !KNOWN.has(e.domain) : e.domain === filt.dom))
+      && (!filt.area || e.area === filt.area)
+      && (!q || (e.name + ' ' + e.entity_id + ' ' + (e.area || '')).toLowerCase().includes(q)));
+    el.innerHTML = `<h3>Widget</h3>
+      <div class="widgets">
+        <div class="wbtn" draggable="true" data-new="weather"><i class="mdi mdi-weather-partly-cloudy"></i>Meteo</div>
+        <div class="wbtn" draggable="true" data-new="clock"><i class="mdi mdi-clock-outline"></i>Orologio</div>
+        <div class="wbtn" draggable="true" data-new="camera"><i class="mdi mdi-cctv"></i>Telecamera</div>
+        <div class="wbtn" draggable="true" data-new="group"><i class="mdi mdi-lightbulb-group-outline"></i>Gruppo</div>
+      </div>
+      ${sw('grid.calendar_bar', 'Barra "Prossimi" in fondo', 'Mostra gli eventi dei calendari scelti in Generale')}
+      <h3>Dispositivi ed entità</h3>
+      <input class="in" id="q" placeholder="Cerca per nome, stanza o ID…" value="${esc(filt.q)}">
+      <div class="chips">${DOMAINS.map(([k, n]) => `<button class="chip ${filt.dom === k ? 'on' : ''}" data-dom="${k}">${n}</button>`).join('')}</div>
+      <div class="row"><select class="in" id="area"><option value="">Tutte le stanze</option>${areas.map(a => opt(a, a, filt.area)).join('')}</select></div>
+      <div class="sw" style="border:0"><div style="font-size:12px;color:var(--mut)">Mostra entità nascoste/di sistema</div><label class="toggle"><input type="checkbox" id="hid" ${filt.hidden ? 'checked' : ''}><span></span></label></div>
+      <div class="count">${list.length} entità · ${used.size} già sulla dashboard</div>
+      ${gsel ? `<div class="grpbar"><i class="mdi mdi-lightbulb-group-outline"></i><span style="flex:1">Il <b>+</b> aggiunge al gruppo <b data-raw>${esc(gsel.name)}</b></span>${filtered && list.length ? `<button class="btn sm" id="addall">Aggiungi tutte (${Math.min(list.length, 40)})</button>` : ''}</div>`
+        : filtered && list.length ? `<button class="btn sm" id="mkgroup" style="margin:6px 0"><i class="mdi mdi-lightbulb-group-outline"></i>Crea un gruppo con queste ${Math.min(list.length, 40)} entità</button>` : ''}
+      <div id="elist">${list.slice(0, 400).map(e => `<div class="ent ${used.has(e.entity_id) ? 'used' : ''}" draggable="true" data-new="${e.domain === 'camera' ? 'camera' : 'entity'}" data-entity="${esc(e.entity_id)}">
+        <i class="mdi mdi-${esc((e.icon || 'mdi:' + (DOM_ICON[e.domain] || 'help-circle-outline')).replace(/^mdi:/, ''))}"></i>
+        <div style="min-width:0" data-raw><div class="n">${esc(e.name)}</div><div class="s">${esc(e.area ? e.area + ' · ' : '')}${esc(e.entity_id)}</div></div>
+        <div class="row" style="flex:0"><span class="st">${esc(e.state)}${e.unit ? ' ' + esc(e.unit) : ''}</span><button class="add" data-add="${esc(e.entity_id)}" title="Aggiungi">+</button></div></div>`).join('')}
+        ${list.length > 400 ? '<div class="count">…affina la ricerca per vedere le altre</div>' : ''}</div>`;
+    const qi = $('#q');
+    qi.oninput = () => { filt.q = qi.value; const pos = qi.selectionStart; renderPanel(); const n = $('#q'); n.focus(); n.setSelectionRange(pos, pos); };
+    el.querySelectorAll('[data-dom]').forEach(b => b.onclick = () => { filt.dom = b.dataset.dom; renderPanel(); });
+    $('#area').onchange = (e) => { filt.area = e.target.value; renderPanel(); };
+    $('#hid').onchange = (e) => { filt.hidden = e.target.checked; renderPanel(); };
+    el.querySelectorAll('[data-add]').forEach(b => b.onclick = (ev) => { ev.stopPropagation(); const id = b.dataset.add; if (gsel) return addMembers(sel, [id]); addTile(newTile(dom(id) === 'camera' ? 'camera' : 'entity', id)); });
+    if ($('#addall')) $('#addall').onclick = () => addMembers(sel, list.slice(0, 40).map(x => x.entity_id));
+    if ($('#mkgroup')) $('#mkgroup').onclick = () => {
+      const dn = tr(filt.dom !== 'all' ? (DOMAINS.find(x => x[0] === filt.dom) || [0, 'Gruppo'])[1] : 'Gruppo');
+      const icons = {light:'mdi:lightbulb-group-outline', switch:'mdi:power-socket-eu', scene:'mdi:palette-outline', climate:'mdi:thermostat', media_player:'mdi:speaker-multiple', sensor:'mdi:gauge', binary_sensor:'mdi:door-sliding', cover:'mdi:window-shutter', lock:'mdi:lock-outline', camera:'mdi:cctv'};
+      addTile(newTile('group', {name: filt.area ? (filt.dom !== 'all' ? dn + ' ' + filt.area : filt.area) : dn, icon: icons[filt.dom], entities: list.slice(0, 40).map(x => x.entity_id)}));
+    };
+    el.querySelectorAll('.wbtn').forEach(b => b.ondblclick = () => addTile(newTile(b.dataset.new)));
+  }
+  if (tab === 'look') {
+    const th = L.theme;
+    el.innerHTML = `<h3>Temi rapidi</h3>
+      <div class="presets">${Object.entries(PRESETS).map(([n, p]) => `<button data-preset="${n}" style="background:linear-gradient(135deg,${p.accent},${p.tile_on_color})">${n}</button>`).join('')}</div>
+      <h3>Sfondo</h3>
+      <div class="seg"><button data-bgmode="day" class="${bgMode === 'day' ? 'on' : ''}"><i class="mdi mdi-white-balance-sunny"></i> Giorno</button><button data-bgmode="night" class="${bgMode === 'night' ? 'on' : ''}"><i class="mdi mdi-weather-night"></i> Notte</button></div>
+      <div class="count">${bgMode === 'day' ? 'Sfondo principale (bordo blu).' : 'Sfondo dopo il tramonto (bordo viola). Vuoto = sempre quello del giorno.'} Scegliendo uno sfondo chiaro che ha una versione scura (-light/-dark) la imposto da sola per la notte.</div>
+      ${th.background_dark ? `<div class="row" style="margin:4px 0"><span class="count" style="flex:1">Notte: ${esc(th.background_dark.split('/').pop())}</span><button class="btn sm" id="nodark">Rimuovi notte</button></div>` : ''}
+      ${[...new Set(BGS.map(b => b.group))].map(g => `<div class="bggrp">${esc(g)}</div><div class="bgs">${BGS.filter(b => b.group === g).map(b => {
+          const cls = (th.background.split('?')[0] === b.url ? 'on' : '') + ' ' + ((th.background_dark || '').split('?')[0] === b.url ? 'on2' : '');
+          return `<div class="${cls}" data-bg="${esc(b.url)}" title="${esc(b.name)}" style="background-image:url('${esc(b.thumb || b.url)}')">${b.variant ? `<span class="tag">${b.variant === 'dark' ? 'scuro' : 'chiaro'}</span>` : ''}</div>`; }).join('')}
+        ${g === 'I tuoi sfondi' ? '<label><input type="file" accept="image/*" id="upl" hidden><span><i class="mdi mdi-upload" style="font-size:20px"></i><br>Carica</span></label>' : ''}</div>`).join('')}
+      ${BGS.some(b => b.group === 'I tuoi sfondi') ? '' : '<div class="bgs" style="margin-top:6px"><label><input type="file" accept="image/*" id="upl" hidden><span><i class="mdi mdi-upload" style="font-size:20px"></i><br>Carica</span></label></div>'}
+      <div class="field" style="margin-top:10px"><label>Oppure indirizzo immagine (giorno)</label><input class="in" data-p="theme.background" value="${esc(th.background)}"></div>
+      ${rng('theme.background_opacity', 'Luminosità sfondo', 10, 100, 5, '%')}
+      <h3>Quadrati</h3>
+      ${rng('theme.tile_opacity', 'Opacità vetro (spento)', 0, .6, .01)}
+      ${col('theme.tile_on_color', 'Colore quando acceso')}
+      ${rng('theme.tile_on_opacity', 'Intensità colore acceso', .1, 1, .01)}
+      ${col('theme.text_color', 'Testo e icone (spento)')}
+      ${col('theme.text_on_color', 'Testo e icone (acceso)')}
+      ${rng('theme.blur', 'Sfocatura vetro', 0, 40, 1, 'px')}
+      ${rng('theme.radius', 'Arrotondamento angoli', 0, 50, 1, 'px')}
+      ${sw('theme.shadow', 'Ombra e riflessi', 'Effetto vetro in rilievo')}
+      <h3>Testi</h3>
+      ${rng('theme.name_size', 'Dimensione nome', 12, 32, 1, 'px')}
+      ${rng('theme.label_size', 'Dimensione etichetta', 10, 24, 1, 'px')}
+      ${rng('theme.icon_size', 'Dimensione icona', 15, 60, 1, '%')}
+      <h3>Griglia</h3>
+      ${rng('grid.columns', 'Colonne', 3, 8, 1)}
+      ${rng('theme.gap', 'Spazio tra i quadrati', 4, 40, 1, 'px')}
+      ${rng('theme.max_width', 'Larghezza massima', 900, 2400, 50, 'px')}
+      <h3>Orologi</h3>
+      <div class="lbl">Quadrato orologio nella Home</div>
+      <div class="clocks">${Object.entries(CLOCK_NAMES).map(([k, n]) => `<button data-clk="clock_home" data-v="${k}" class="${(th.clock_home || 'original') === k ? 'on' : ''}">${k === 'original' ? clockSVG() : clockHTML(k, th.accent, '#FFFFFF')}<span>${n}</span></button>`).join('')}</div>
+      <div class="lbl">Orologio nella pagina Widget</div>
+      <div class="clocks light">${Object.entries(CLOCK_NAMES).map(([k, n]) => `<button data-clk="clock_widgets" data-v="${k}" class="${(th.clock_widgets || 'original') === k ? 'on' : ''}">${k === 'original' ? clockSVG().replace(/currentColor/g, '#0B0B0C') : clockHTML(k, '#E8590C', '#0B0B0C')}<span>${n}</span></button>`).join('')}</div>
+      <div class="lbl">Salvaschermo (a tutto schermo)</div>
+      <div class="clocks ss">${Object.entries(CLOCK_NAMES).map(([k, n]) => `<button data-clk="clock_screensaver" data-v="${k}" class="${(th.clock_screensaver || 'original') === k ? 'on' : ''}" style="padding:0">${clockHTML(k === 'original' ? 'bold' : k, th.accent, th.screensaver_text || '#0B0B0C', 133, true)}<span>${n}</span></button>`).join('')}</div>
+      ${col('theme.accent', 'Colore di sfondo del salvaschermo')}
+      ${col('theme.screensaver_text', 'Colore numeri del salvaschermo')}`;
+    bindPaths(el);
+    el.querySelectorAll('[data-preset]').forEach(b => b.onclick = () => { edit(() => Object.assign(L.theme, PRESETS[b.dataset.preset])); renderPanel(); });
+    el.querySelectorAll('[data-bg]').forEach(d => d.onclick = () => {
+      const u = d.dataset.bg;
+      if (bgMode === 'night') { edit(() => L.theme.background_dark = u); renderPanel(); return; }
+      const dk = u.endsWith('-light.jpg') ? u.replace('-light.jpg', '-dark.jpg') : null;
+      edit(() => { L.theme.background = u; if (dk && BGS.some(b => b.url === dk)) L.theme.background_dark = dk; });
+      if (dk && BGS.some(b => b.url === dk)) toast('Di notte userò la versione scura');
+      renderPanel();
+    });
+    el.querySelectorAll('[data-bgmode]').forEach(b => b.onclick = () => { bgMode = b.dataset.bgmode; renderPanel(); });
+    if ($('#nodark')) $('#nodark').onclick = () => { edit(() => L.theme.background_dark = ''); renderPanel(); };
+    el.querySelectorAll('[data-clk]').forEach(b => b.onclick = () => { edit(() => L.theme[b.dataset.clk] = b.dataset.v); renderPanel(); });
+    $('#upl').onchange = async (ev) => {
+      const f = ev.target.files[0]; if (!f) return;
+      toast('Carico ' + esc(f.name) + '…');
+      try {
+        const r = await api('api/backgrounds?name=' + encodeURIComponent(f.name), {method:'POST', body:f});
+        BGS = await api('api/backgrounds');
+        edit(() => L.theme.background = r.url); renderPanel(); toast('Sfondo caricato');
+      } catch (e) { toast('Caricamento fallito: ' + esc(e.message), true); }
+    };
+  }
+  if (tab === 'behavior') {
+    el.innerHTML = `<h3>Salvaschermo</h3>
+      ${sw('behavior.screensaver', 'Salvaschermo con orologio', 'Dopo un periodo di inattività (WallPanel)')}
+      <div class="field"><label>Attiva dopo (secondi)</label><input class="in" type="number" min="10" step="10" data-p="behavior.idle_time" value="${L.behavior.idle_time}"></div>
+      <h3>Schermo</h3>
+      ${sw('behavior.fullscreen', 'Schermo intero', 'Al primo tocco')}
+      ${sw('behavior.hide_toolbar', 'Nascondi barra in alto')}
+      ${sw('behavior.hide_sidebar', 'Nascondi barra laterale')}
+      ${sw('behavior.kiosk_always', 'Modalità kiosk sempre attiva', 'Per uscire: aggiungi ?disable_km all\'indirizzo. Se spenta: tieni premuto l\'orologio')}
+      <h3>Navigazione</h3>
+      ${sw('behavior.mouse_swipe', 'Scorrimento col mouse', 'Clic e trascina per cambiare pagina su Mac/PC')}
+      <div class="field"><label>Animazione cambio pagina</label><select class="in" data-p="behavior.swipe_animation">${[['swipe','Scorrimento'],['fade','Dissolvenza'],['flip','Rotazione'],['none','Nessuna']].map(([v, n]) => opt(v, n, L.behavior.swipe_animation)).join('')}</select></div>
+      ${sw('behavior.swipe_wrap', 'Scorrimento circolare', 'Dall\'ultima pagina torna alla prima')}
+      ${sw('behavior.show_widgets', 'Pagina Widget')}
+      ${sw('behavior.show_cameras', 'Pagina Telecamere')}
+      <h3>Quadrati</h3>
+      <div class="field"><label>Pressione prolungata su un quadrato</label><select class="in" data-p="behavior.hold_action">${[['more-info','Apri dettagli'],['none','Nessuna']].map(([v, n]) => opt(v, n, L.behavior.hold_action)).join('')}</select></div>
+      ${sw('behavior.haptic', 'Vibrazione al tocco', 'Solo nell\'app Home Assistant')}`;
+    bindPaths(el);
+  }
+  if (tab === 'general') {
+    const cals = E.filter(e => e.domain === 'calendar');
+    const chosen = new Map((L.sources.calendars || []).map(c => [c.entity, c]));
+    el.innerHTML = `<h3>Lingua</h3>
+      <div class="field"><select class="in" data-p="language">${opt('auto', 'Automatica (come Home Assistant)', L.language || 'auto')}${opt('it', 'Italiano', L.language)}${opt('en', 'English', L.language)}</select></div>
+      <h3>Dashboard</h3>
+      <div class="field"><label>Titolo</label><input class="in" data-p="dashboard.title" value="${esc(L.dashboard.title)}"></div>
+      <div class="field"><label>Indirizzo (deve contenere un trattino)</label><input class="in" data-p="dashboard.url_path" value="${esc(L.dashboard.url_path)}"></div>
+      <h3>Sorgenti</h3>
+      <div class="field"><label>Meteo</label><select class="in" data-p="sources.weather">${entOptions(e => e.domain === 'weather', L.sources.weather)}</select></div>
+      <div class="field"><label>Telecamera principale (pagina Telecamere e campanello)</label><select class="in" data-p="sources.camera">${entOptions(e => e.domain === 'camera', L.sources.camera)}</select></div>
+      <div class="field"><label>Evento campanello (apre la telecamera quando suonano)</label><select class="in" data-p="sources.doorbell"><option value="">Nessuno</option>${entOptions(e => e.domain === 'event', L.sources.doorbell)}</select></div>
+      <div class="lbl" style="margin-bottom:4px">Calendari</div>
+      ${cals.length ? cals.map(c => { const ch = chosen.get(c.entity_id); return `<div class="calrow"><input type="checkbox" data-cal="${esc(c.entity_id)}" ${ch ? 'checked' : ''}><span data-raw>${esc(c.name)}</span><input type="color" data-calc="${esc(c.entity_id)}" value="${esc(ch ? ch.color : '#30D158')}"></div>`; }).join('') : '<div class="count">Nessun calendario trovato</div>'}
+      <h3>Pagina Telecamere</h3>
+      <div class="count">Scegli quali telecamere mostrare e in che ordine (1 = schermo intero, 2–4 = griglia 2×2, 5+ = griglia 3 colonne).</div>
+      ${(() => { const sel2 = L.sources.cameras || []; const camsAll = E.filter(e => e.domain === 'camera');
+        const ordered = [...sel2.filter(id => camsAll.some(c => c.entity_id === id)), ...camsAll.map(c => c.entity_id).filter(id => !sel2.includes(id))];
+        return ordered.map(id => { const c = EM[id]; const on = sel2.includes(id); const j = sel2.indexOf(id);
+          return `<div class="mem"><input type="checkbox" data-cam="${esc(id)}" ${on ? 'checked' : ''}><div style="min-width:0" data-raw><div class="n">${esc(c ? c.name : id)}</div><div class="s">${esc(id)}${c ? ' · ' + esc(c.state) : ''}</div></div>
+            <div class="b">${on ? `<button data-cup="${j}"><i class="mdi mdi-chevron-up"></i></button><button data-cdown="${j}"><i class="mdi mdi-chevron-down"></i></button>` : ''}</div></div>`; }).join('') || '<div class="count">Nessuna telecamera trovata</div>'; })()}
+      <h3>Ripristino</h3>
+      <div class="hint">Prima di ogni "Applica" salvo una copia della dashboard. Puoi tornare a una versione precedente.</div>
+      <div style="margin-top:8px">${BACKUPS.slice(0, 8).map(b => `<div class="bk"><span>${esc(b.replace(/^.*-(\d{4})(\d\d)(\d\d)-(\d\d)(\d\d)(\d\d)\.json$/, '$3/$2/$1 $4:$5'))}</span><button class="btn sm" data-restore="${esc(b)}">Ripristina</button></div>`).join('') || '<div class="count">Nessuna copia ancora</div>'}</div>
+      <div style="margin-top:14px"><button class="btn danger" id="reset"><i class="mdi mdi-restore"></i>Riporta layout iniziale</button></div>`;
+    bindPaths(el);
+    el.querySelectorAll('[data-cam]').forEach(c => c.onchange = () => {
+      edit(() => { const cur = (L.sources.cameras || []).filter(x => x !== c.dataset.cam); if (c.checked) cur.push(c.dataset.cam); L.sources.cameras = cur.length ? cur : [c.dataset.cam]; });
+      renderPanel();
+    });
+    const cmv = (j, dd) => { edit(() => { const a = L.sources.cameras; const k = j + dd; if (k < 0 || k >= a.length) return; [a[j], a[k]] = [a[k], a[j]]; }); renderPanel(); };
+    el.querySelectorAll('[data-cup]').forEach(b => b.onclick = () => cmv(+b.dataset.cup, -1));
+    el.querySelectorAll('[data-cdown]').forEach(b => b.onclick = () => cmv(+b.dataset.cdown, 1));
+    const syncCals = () => edit(() => {
+      L.sources.calendars = [...el.querySelectorAll('[data-cal]')].filter(c => c.checked).map(c => {
+        const id = c.dataset.cal; return {entity: id, name: (EM[id] || {}).name || id, color: el.querySelector(`[data-calc="${id}"]`).value};
+      });
+    });
+    el.querySelectorAll('[data-cal],[data-calc]').forEach(c => c.onchange = syncCals);
+    el.querySelectorAll('[data-restore]').forEach(b => b.onclick = async () => {
+      if (!confirmInline(b)) return;
+      try { await api('api/restore', {method:'POST', body: JSON.stringify({name: b.dataset.restore})}); toast('Dashboard ripristinata'); }
+      catch (e) { toast(esc(e.message), true); }
+    });
+    $('#reset').onclick = async (ev) => {
+      if (!confirmInline(ev.currentTarget)) return;
+      const d = await api('api/default'); edit(() => { L = d; sel = -1; }); renderPanel(); renderInsp(); toast('Layout iniziale ripristinato (non ancora applicato)');
+    };
+  }
+}
+// two-click confirmation without browser dialogs
+function confirmInline(btn) {
+  if (btn.dataset.armed) return true;
+  const old = btn.innerHTML; btn.dataset.armed = '1'; btn.innerHTML = 'Sicuro? Clicca di nuovo';
+  setTimeout(() => { delete btn.dataset.armed; btn.innerHTML = old; }, 3000);
+  return false;
+}
+
+// ---------------------------------------------------------------- apply / init
+function setOpen() { $('#open').href = '/' + (L.dashboard.url_path || 'home-view') + '/home'; }
+$('#apply').onclick = async () => {
+  const b = $('#apply'); b.disabled = true; b.innerHTML = '<i class="mdi mdi-loading mdi-spin"></i>Applico…';
+  try {
+    clearTimeout(saveT);
+    const r = await api('api/apply', {method:'POST', body: JSON.stringify(L)});
+    dirty = false; status(); BACKUPS = await api('api/backups').catch(() => BACKUPS);
+    toast(`Dashboard <b>/${esc(r.url_path)}</b> aggiornata. Ricarica la pagina sull'iPad.`);
+    if (tab === 'general') renderPanel();
+  } catch (e) { toast('Errore: ' + esc(e.message), true); }
+  b.disabled = false; b.innerHTML = '<i class="mdi mdi-check-circle-outline"></i>Applica alla dashboard';
+};
+async function refreshStates() {
+  try { E = await api('api/entities'); EM = Object.fromEntries(E.map(e => [e.entity_id, e])); renderBoard(); } catch (e) { /* keep last */ }
+}
+(async function init() {
+  try {
+    [L, E, BGS, BACKUPS] = await Promise.all([api('api/layout'), api('api/entities'), api('api/backgrounds'), api('api/backups')]);
+    try { CLOCK_SRC = await (await fetch('api/clock.js')).text(); } catch (e) { CLOCK_SRC = ''; }
+    applyLang(true);
+    EM = Object.fromEntries(E.map(e => [e.entity_id, e]));
+    setOpen(); renderPanel(); renderBoard(); renderInsp();
+    $('#status').className = 'pill'; $('#status').textContent = 'Pronto';
+    setInterval(refreshStates, 15000);
+  } catch (e) {
+    $('#status').className = 'pill dirty'; $('#status').textContent = 'Errore';
+    toast('Impossibile caricare i dati: ' + esc(e.message), true);
+  }
+})();
+</script>
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+</body>
+</html>

@@ -1,0 +1,19 @@
+name: Home View Studio
+version: "1.5.1"
+slug: homeview_studio
+description: Visual editor for a smart-display style iPad dashboard (devices, groups, wallpapers, clocks, behavior). EN/IT.
+url: https://github.com/gioromeo-dev/ha-applehomeview-dashboard
+arch:
+  - amd64
+  - aarch64
+init: false
+startup: application
+boot: auto
+ingress: true
+ingress_port: 8099
+panel_icon: mdi:tablet-dashboard
+panel_title: Home View Studio
+homeassistant_api: true
+map:
+  - type: homeassistant_config
+    read_only: false
