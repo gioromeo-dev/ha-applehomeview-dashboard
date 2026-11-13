@@ -46,7 +46,7 @@ Home View Studio is an add-on (app) for Home Assistant. It provides:
 | **Appearance** | Quick themes, color of tiles that are on, glass opacity and blur, corner radius, shadows, text and icon sizes, number of columns (3 to 8). |
 | **Screensaver faces** | Six original faces that rotate while the iPad is idle: Clock, Photos (your photo folder or wallpapers), Flow (moving colors that brighten when a motion sensor triggers), Meridian (numerals fading with the time), Weather and Calendar. Night mode dims and warms the screen. |
 | **Behavior** | Screensaver (WallPanel), full screen, kiosk mode, swiping between pages (mouse too), animations, which pages are shown. |
-| **Cameras** | Choose which cameras to show and in what order. The grid adapts automatically: 1, 2×2 or 3 columns. |
+| **Cameras** | A dedicated tab with a live preview: choose which cameras to show and their order, rename them, fill or fit each image, and pick the layout (automatic, grid with 1–4 columns, or one large camera with the others on the side). Also names on/off, tap action (full-screen live popup, details or nothing), refresh rate, spacing and corner radius. |
 | **Language** | Editor and dashboard in **English** or **Italian**, automatic (same as Home Assistant) or chosen in *General → Language*. |
 | **Safety** | A copy of the dashboard is saved before every publish, and you can restore it from the editor. |
 
@@ -57,7 +57,9 @@ Home View Studio is an add-on (app) for Home Assistant. It provides:
 | ![Items](docs/screenshots/en/editor-elementi.png) | ![Group](docs/screenshots/en/editor-gruppo.png) |
 | **Appearance and wallpapers** | **Clocks (Home, Widgets, screensaver)** |
 | ![Appearance](docs/screenshots/en/editor-aspetto.png) | ![Clocks](docs/screenshots/en/editor-orologi.png) |
-| **Behavior** | **General: sources, cameras, restore** |
+| **Screensaver faces** | **Cameras page** |
+| ![Screensaver](docs/screenshots/en/editor-salvaschermo.png) | ![Cameras](docs/screenshots/en/editor-telecamere.png) |
+| **Behavior** | **General: sources, language, restore** |
 | ![Behavior](docs/screenshots/en/editor-comportamento.png) | ![General](docs/screenshots/en/editor-generale.png) |
 
 ![Home preview](docs/screenshots/en/anteprima-home.png)

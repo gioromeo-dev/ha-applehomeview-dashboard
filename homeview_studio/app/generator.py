@@ -213,6 +213,8 @@ DEFAULT_LAYOUT = {
         "show_widgets": True,
         "show_cameras": True,
     },
+    "cameras": {"items": [], "layout": "auto", "columns": 0, "show_names": True, "tap": "popup",
+                "refresh": 10, "gap": 12, "radius": 22},
     "sources": {
         "weather": BASE_WEATHER,
         "calendars": [],
@@ -348,7 +350,8 @@ def group_popup(t, cal_popup, beh, info):
     return p
 
 
-def build_cameras(d, cams, info):
+def build_cameras(d, cc, info):
+    """Cameras view. cc = {items:[{entity,name,fit}], layout, columns, show_names, tap, refresh, gap, radius}."""
     camv = find_view(d, "cameras")
     if not camv:
         return
@@ -356,44 +359,92 @@ def build_cameras(d, cams, info):
     grid = cstack[0]
     base_c1 = grid["custom_fields"]["c1"]["card"]
     base_pop = next((c for c in cstack if c.get("hash") == "#cam1"), None)
-    n = len(cams)
-    cols = 1 if n == 1 else 2 if n <= 4 else 3
-    rows = -(-n // cols)
-    gap = 12
+    items = cc["items"]
+    n = len(items)
+    gap = int(cc.get("gap", 12))
+    radius = int(cc.get("radius", 22))
+    refresh = max(2, int(cc.get("refresh", 10)))
+    tpl = d["button_card_templates"].get("hw_cam_grid_tile")
+    if tpl:
+        tpl["update_timer"] = refresh * 1000
+        tpl["entity_picture"] = tpl["entity_picture"].replace("Math.floor(Date.now() / 30000)", f"Math.floor(Date.now() / {refresh * 1000})")
+        set_style(tpl["styles"]["card"], "border-radius", f"{radius}px")
+    layout = cc.get("layout", "auto")
+    H = "(100vh - 28px)"
     cf, cfs, pops = {}, {}, []
-    for i, ent in enumerate(cams):
+    if n == 1:
+        cols_css, rows, cells = "1fr", 1, [["c1"]]
+    elif layout == "featured":
+        side = n - 1
+        side_cols = 1 if side <= 4 else 2
+        side_rows = -(-side // side_cols)
+        cols_css = "2fr " + " ".join(["1fr"] * side_cols)
+        rows = side_rows
+        cells = []
+        k = 2
+        for r in range(side_rows):
+            row = ["c1"]
+            for _ in range(side_cols):
+                row.append(f"c{k}" if k <= n else ".")
+                k += 1
+            cells.append(row)
+    else:
+        cols = int(cc.get("columns") or 0) or (1 if n == 1 else 2 if n <= 4 else 3)
+        cols = max(1, min(cols, n))
+        rows = -(-n // cols)
+        cols_css = f"repeat({cols}, minmax(0, 1fr))"
+        flat = [f"c{i + 1}" for i in range(n)] + ["."] * (rows * cols - n)
+        cells = [flat[r * cols:(r + 1) * cols] for r in range(rows)]
+    for i, it in enumerate(items):
         key = f"c{i + 1}"
+        ent = it["entity"]
         c = copy.deepcopy(base_c1)
         c["entity"] = ent
-        c["name"] = (info or {}).get(ent, {}).get("name") or ent.split(".", 1)[1].replace("_", " ").title()
-        c["tap_action"] = {"action": "navigate", "navigation_path": f"#cam{i + 1}", "haptic": "light"}
-        if n > 1:
-            h = f"calc((100vh - 28px - {(rows - 1) * gap}px) / {rows})"
+        c["name"] = it.get("name") or (info or {}).get(ent, {}).get("name") or ent.split(".", 1)[1].replace("_", " ").title()
+        c["show_name"] = bool(cc.get("show_names", True))
+        tap = cc.get("tap", "popup")
+        c["tap_action"] = ({"action": "navigate", "navigation_path": f"#cam{i + 1}", "haptic": "light"} if tap == "popup"
+                           else {"action": tap})
+        fit = it.get("fit") or "cover"
+        c["styles"]["entity_picture"] = [{"width": "100%"}, {"height": "100%"}, {"object-fit": fit}]
+        if n == 1:
+            pass  # full-screen 16:9 sizing from the base card
+        elif layout == "featured":
+            if i == 0:
+                c["styles"]["card"] = [{"width": "100%"}, {"height": f"calc{H}"}, {"aspect-ratio": "auto"}, {"max-width": "none"}]
+            else:
+                c["styles"]["card"] = [{"width": "100%"}, {"height": f"calc(({H} - {(rows - 1) * gap}px) / {rows})"},
+                                       {"aspect-ratio": "auto"}, {"max-width": "none"}]
+        else:
+            h = f"calc(({H} - {(rows - 1) * gap}px) / {rows})"
             c["styles"]["card"] = [{"width": f"min(100%, calc({h} * 1.7778))"}, {"height": "auto"},
                                    {"aspect-ratio": "16 / 9"}, {"max-width": "none"}]
+        if fit == "contain":
+            c["styles"]["card"].append({"background": "#000"})
         cf[key] = {"card": c}
         cfs[key] = [{"justify-self": "center"}, {"align-self": "center"}, {"min-width": "0"}, {"width": "100%"},
                     {"display": "flex"}, {"justify-content": "center"}]
-        if base_pop:
+        if base_pop and tap == "popup":
             p = copy.deepcopy(base_pop)
             p["hash"] = f"#cam{i + 1}"
             p["name"] = c["name"]
 
-            def setc(cards):
+            def fix(cards):
                 for x in cards:
                     if x.get("type") == "picture-entity":
                         x["entity"] = ent
+                    if x.get("template") == "hw_pop_btn" and x.get("name") == "Close":
+                        x["name"], x["label"] = "Chiudi", "Telecamere"
                     if "cards" in x:
-                        setc(x["cards"])
-            setc(p.get("cards", []))
+                        fix(x["cards"])
+            fix(p.get("cards", []))
             pops.append(p)
-    cells = [f"c{i + 1}" for i in range(n)] + ["."] * (rows * cols - n)
-    areas = " ".join('"' + " ".join(cells[r * cols:(r + 1) * cols]) + '"' for r in range(rows))
+    areas = " ".join('"' + " ".join(r) + '"' for r in cells)
     grid["custom_fields"] = cf
     grid["styles"]["custom_fields"] = cfs
     grid["styles"]["grid"] = [g for g in grid["styles"]["grid"]
                               if not any(k in g for k in ("grid-template-areas", "grid-template-columns", "grid-template-rows", "gap"))]
-    grid["styles"]["grid"] += [{"grid-template-areas": areas}, {"grid-template-columns": f"repeat({cols}, minmax(0, 1fr))"},
+    grid["styles"]["grid"] += [{"grid-template-areas": areas}, {"grid-template-columns": cols_css},
                                {"grid-template-rows": " ".join(["auto"] * rows)}, {"gap": f"{gap}px"}]
     camv["cards"][0]["cards"] = [grid] + pops
 
@@ -435,7 +486,7 @@ EN_WORDS = {  # quoted tokens: 'x' in JS and "x" as JSON values
     "Allarme!": "Triggered!", "Tocca per attivare": "Tap to activate", "Entità non trovata": "Entity not found",
     "Vuoto": "Empty", "Tutto spento": "All off", "Tutti accesi": "All on",
     "Accendi tutto": "Turn all on", "Spegni tutto": "Turn all off", "Gruppo vuoto": "Empty group", "Gruppo": "Group",
-    "Scena": "Scene", "Meteo": "Weather", "Calendario": "Calendar", "Campanello": "Doorbell", "Telecamera": "Camera",
+    "Chiudi": "Close", "Telecamere": "Cameras", "Scena": "Scene", "Meteo": "Weather", "Calendario": "Calendar", "Campanello": "Doorbell", "Telecamera": "Camera",
 }
 
 
@@ -636,8 +687,16 @@ def generate(base, layout, info=None, lang=None, wallpapers=None):
                                  "background:url(\"${u}\") center / cover no-repeat;}`; ]]]")
 
     # ---------- cameras view ----------
-    cams = [c for c in (src.get("cameras") or []) if c] or [src.get("camera") or BASE_CAMERA]
-    build_cameras(d, cams, info)
+    cc = dict(L.get("cameras") or {})
+    items = [dict(x) for x in (cc.get("items") or []) if x.get("entity")]
+    if not items:  # older layouts: plain list in sources.cameras
+        items = [{"entity": c} for c in (src.get("cameras") or []) if c]
+    if info:
+        items = [x for x in items if x["entity"] in info]
+    if not items:
+        items = [{"entity": src.get("camera") or BASE_CAMERA}]
+    cc["items"] = items
+    build_cameras(d, cc, info)
 
     # ---------- behaviour ----------
     wp = d.setdefault("wallpanel", {})

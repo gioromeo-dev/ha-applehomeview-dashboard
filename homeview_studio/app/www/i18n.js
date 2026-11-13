@@ -84,6 +84,13 @@ const I18N_EN = {
   'Media → Media locali → Photo Slideshow. Se è vuota uso i tuoi sfondi': 'Media → Local media → Photo Slideshow. If empty, your wallpapers are used',
   'Cambia foto ogni (secondi)': 'Change photo every (seconds)', 'Sensore di movimento per il quadrante Flusso': 'Motion sensor for the Flow face',
   'Modalità notte': 'Night mode', 'Salvaschermo più scuro e caldo di notte': 'Darker, warmer screensaver at night', 'Dalle': 'From', 'Alle': 'To', 'Luminosità di notte': 'Night brightness',
+  // cameras tab
+  'Disposizione': 'Layout', 'Automatica (1 = schermo intero, 2–4 = 2 colonne, 5+ = 3 colonne)': 'Automatic (1 = full screen, 2–4 = 2 columns, 5+ = 3 columns)',
+  'Griglia con colonne a scelta': 'Grid with chosen columns', 'Una grande + le altre di lato': 'One large + the others on the side',
+  "Spunta quelle da mostrare, ordinale con le frecce (la prima è quella grande), rinominale e scegli come adattare l'immagine.": 'Tick the ones to show, order them with the arrows (the first is the large one), rename them and choose how the image fits.',
+  'Riempi': 'Fill', 'Intera': 'Fit', 'Opzioni': 'Options', 'Mostra i nomi': 'Show names', 'Al tocco': 'On tap',
+  'Apri a schermo intero (diretta)': 'Open full screen (live)', 'Aggiorna le immagini ogni': 'Refresh images every',
+  'Spazio tra le telecamere': 'Space between cameras', 'Nessuna telecamera selezionata': 'No camera selected',
   // general
   'Dashboard': 'Dashboard', 'Titolo': 'Title', 'Indirizzo (deve contenere un trattino)': 'Address (must contain a hyphen)', 'Sorgenti': 'Sources',
   'Telecamera principale (pagina Telecamere e campanello)': 'Main camera (Cameras page and doorbell)',

@@ -33,7 +33,11 @@ header h1 i{font-size:22px;color:var(--acc)}
 aside{background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
 aside.right{border-right:0;border-left:1px solid var(--line)}
 .tabs{display:flex;gap:2px;padding:8px;border-bottom:1px solid var(--line)}
-.tab{flex:1;border:0;background:transparent;padding:7px 4px;border-radius:8px;cursor:pointer;color:var(--mut);font-size:12.5px;font-weight:550}
+.tab{flex:1 1 auto;border:0;background:transparent;padding:7px 3px;border-radius:8px;cursor:pointer;color:var(--mut);font-size:11px;font-weight:600;white-space:nowrap;letter-spacing:-.1px}
+.tabs{gap:0!important;padding:8px 6px!important}
+.main.nocam-insp{grid-template-columns:340px 1fr 0}
+.main.nocam-insp .right{display:none}
+.tabs{flex-wrap:wrap}
 .tab.on{background:var(--panel2);color:var(--txt)}
 .scroll{overflow:auto;padding:12px 14px 30px;flex:1;min-height:0}
 h3{font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--mut);margin:18px 0 8px;font-weight:650}
@@ -171,6 +175,7 @@ input[type=color]{width:36px;height:30px;padding:0;border:1px solid var(--line2)
         <button class="tab on" data-tab="items">Elementi</button>
         <button class="tab" data-tab="look">Aspetto</button>
         <button class="tab" data-tab="behavior">Comportamento</button>
+        <button class="tab" data-tab="cams">Telecamere</button>
         <button class="tab" data-tab="general">Generale</button>
       </div>
       <div class="scroll" id="panel"></div>
@@ -427,7 +432,38 @@ function tileHTML(t, i) {
   return {cls: (on ? 'on' : '') + (!e || e.state === 'unavailable' ? ' dim' : ''),
     html:`<i class="mdi mdi-${esc(icon)} ic" ${spin}></i><div class="nm" data-raw>${esc(t.name || (e ? e.name : t.entity))}</div>${label ? `<div class="lb">${esc(label)}</div>` : ''}`};
 }
+function camItems() {
+  const cc = L.cameras || (L.cameras = {});
+  if (!cc.items || !cc.items.length) cc.items = (L.sources.cameras || []).filter(Boolean).map(id => ({entity: id}));
+  return cc.items;
+}
+function renderCamBoard() {
+  const b = $('#board'), cc = L.cameras, items = camItems().filter(x => x.entity);
+  const W = $('#ipad').clientWidth || 1000, k = W / 1180, gap = (cc.gap ?? 12) * k, r = (cc.radius ?? 22) * k;
+  const n = items.length, H = $('#ipad').clientHeight || W * 0.75, pad = 14 * k;
+  let colsCss = '1fr', cells = [['c0']], rows = 1;
+  if (n > 1 && cc.layout === 'featured') {
+    const side = n - 1, sc = side <= 4 ? 1 : 2; rows = Math.ceil(side / sc); colsCss = '2fr ' + Array(sc).fill('1fr').join(' ');
+    let kk = 1; cells = []; for (let i = 0; i < rows; i++) { const row = ['c0']; for (let j = 0; j < sc; j++) { row.push(kk < n ? 'c' + kk : '.'); kk++; } cells.push(row); }
+  } else if (n > 1) {
+    const cols = Math.max(1, Math.min(+cc.columns || (n <= 4 ? 2 : 3), n)); rows = Math.ceil(n / cols); colsCss = `repeat(${cols}, minmax(0,1fr))`;
+    const flat = items.map((_, i) => 'c' + i).concat(Array(rows * cols - n).fill('.')); cells = []; for (let i = 0; i < rows; i++) cells.push(flat.slice(i * cols, (i + 1) * cols));
+  }
+  const rowH = (H - pad * 2 - gap * (rows - 1)) / rows;
+  Object.assign(b.style, {gridTemplateColumns: colsCss, gridTemplateAreas: cells.map(rw => '"' + rw.join(' ') + '"').join(' '), gridAutoRows: rowH + 'px', gap: gap + 'px', padding: pad + 'px', justifyContent: 'stretch', alignContent: 'center'});
+  b.innerHTML = n ? items.map((it, i) => {
+    const e = EM[it.entity], name = it.name || (e ? e.name : it.entity);
+    const featured = cc.layout === 'featured' && n > 1;
+    const sz = featured || n === 1 ? 'width:100%;height:100%' : `height:100%;max-width:100%;aspect-ratio:16/9;justify-self:center`;
+    return `<div style="grid-area:c${i};${sz};border-radius:${r}px;overflow:hidden;position:relative;background:#000">
+      ${e && e.picture ? `<img src="${esc(e.picture)}" style="width:100%;height:100%;object-fit:${it.fit || 'cover'};display:block" onerror="this.remove()">` : ''}
+      ${cc.show_names !== false ? `<div data-raw style="position:absolute;left:0;right:0;bottom:0;padding:${18 * k}px ${12 * k}px ${9 * k}px;font-weight:600;font-size:${16 * k}px;color:#fff;background:linear-gradient(to top,rgba(0,0,0,.55),transparent)">${esc(name)}</div>` : ''}</div>`;
+  }).join('') : '<div class="empty" style="grid-column:1/-1;color:#fff">Nessuna telecamera selezionata</div>';
+}
 function renderBoard() {
+  document.querySelector('.main').classList.toggle('nocam-insp', tab === 'cams');
+  if (tab === 'cams') { $('#board').style.gridTemplateAreas = ''; renderCamBoard(); const th0 = L.theme; $('#bgimg').style.backgroundImage = th0.background ? `url("${th0.background}")` : 'none'; return; }
+  $('#board').style.gridTemplateAreas = ''; $('#board').style.alignContent = 'start';
   const b = $('#board'), th = L.theme, cols = L.grid.columns;
   $('#bgimg').style.backgroundImage = th.background ? `url("${th.background}")` : 'none';
   $('#bgimg').style.opacity = (th.background_opacity ?? 100) / 100;
@@ -622,7 +658,7 @@ function renderInsp() {
 
 // ---------------------------------------------------------------- left panel
 document.querySelectorAll('.tab').forEach(b => b.onclick = () => {
-  document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x === b)); tab = b.dataset.tab; renderPanel();
+  document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x === b)); tab = b.dataset.tab; renderPanel(); renderBoard(); renderInsp();
 });
 function sw(path, title, sub) {
   const v = path.split('.').reduce((o, k) => o[k], L);
@@ -807,6 +843,37 @@ function renderPanel() {
     el.querySelectorAll('[data-fup]').forEach(b => b.onclick = () => fmv(+b.dataset.fup, -1));
     el.querySelectorAll('[data-fdown]').forEach(b => b.onclick = () => fmv(+b.dataset.fdown, 1));
   }
+  if (tab === 'cams') {
+    const cc = L.cameras || (L.cameras = {}); const items = camItems();
+    const camsAll = E.filter(e => e.domain === 'camera');
+    const ordered = [...items.filter(it => camsAll.some(c => c.entity_id === it.entity)).map(it => it.entity), ...camsAll.map(c => c.entity_id).filter(id => !items.some(it => it.entity === id))];
+    el.innerHTML = `<h3>Disposizione</h3>
+      <div class="field"><select class="in" data-p="cameras.layout">${opt('auto', 'Automatica (1 = schermo intero, 2–4 = 2 colonne, 5+ = 3 colonne)', cc.layout || 'auto')}${opt('grid', 'Griglia con colonne a scelta', cc.layout)}${opt('featured', 'Una grande + le altre di lato', cc.layout)}</select></div>
+      ${cc.layout === 'grid' ? `<div class="field"><label>Colonne</label><select class="in" data-p="cameras.columns">${[1, 2, 3, 4].map(n => opt(String(n), String(n), String(cc.columns || 2))).join('')}</select></div>` : ''}
+      <h3>Telecamere</h3>
+      <div class="count">Spunta quelle da mostrare, ordinale con le frecce (la prima è quella grande), rinominale e scegli come adattare l'immagine.</div>
+      ${ordered.map(id => { const c = EM[id]; const j = items.findIndex(it => it.entity === id); const it = items[j];
+        return `<div class="mem" style="grid-template-columns:24px 1fr auto"><input type="checkbox" data-cam="${esc(id)}" ${it ? 'checked' : ''}><div style="min-width:0"><div class="n" data-raw>${esc(c ? c.name : id)}</div><div class="s" data-raw>${esc(id)}${c ? ' · ' + esc(c.state) : ''}</div></div>
+          <div class="b">${it ? `<button data-cup="${j}" title="Su"><i class="mdi mdi-chevron-up"></i></button><button data-cdown="${j}" title="Giù"><i class="mdi mdi-chevron-down"></i></button>` : ''}</div></div>
+          ${it ? `<div class="row" style="margin:4px 0 8px 30px"><input class="in" data-cname="${j}" value="${esc(it.name || '')}" placeholder="${esc(c ? c.name : id)}"><select class="in" data-cfit="${j}" style="flex:0 0 120px">${opt('cover', 'Riempi', it.fit || 'cover')}${opt('contain', 'Intera', it.fit)}</select></div>` : ''}`; }).join('') || '<div class="count">Nessuna telecamera trovata</div>'}
+      <h3>Opzioni</h3>
+      ${sw('cameras.show_names', 'Mostra i nomi')}
+      <div class="field"><label>Al tocco</label><select class="in" data-p="cameras.tap">${opt('popup', 'Apri a schermo intero (diretta)', cc.tap || 'popup')}${opt('more-info', 'Apri dettagli', cc.tap)}${opt('none', 'Nessuna', cc.tap)}</select></div>
+      ${rng('cameras.refresh', 'Aggiorna le immagini ogni', 2, 60, 1, 's')}
+      ${rng('cameras.gap', 'Spazio tra le telecamere', 0, 40, 1, 'px')}
+      ${rng('cameras.radius', 'Arrotondamento angoli', 0, 50, 1, 'px')}`;
+    bindPaths(el);
+    el.querySelectorAll('[data-p="cameras.layout"],[data-p="cameras.columns"]').forEach(s => s.addEventListener('change', () => { if (s.dataset.p === 'cameras.columns') L.cameras.columns = +s.value; renderPanel(); renderBoard(); }));
+    el.querySelectorAll('[data-cam]').forEach(c => c.onchange = () => {
+      edit(() => { const id = c.dataset.cam; let cur = camItems().filter(x => x.entity !== id); if (c.checked) cur.push({entity: id}); if (!cur.length) cur = [{entity: id}]; L.cameras.items = cur; });
+      renderPanel();
+    });
+    const cmv = (j, dd) => { edit(() => { const a = L.cameras.items; const k = j + dd; if (k < 0 || k >= a.length) return; [a[j], a[k]] = [a[k], a[j]]; }); renderPanel(); };
+    el.querySelectorAll('[data-cup]').forEach(b => b.onclick = () => cmv(+b.dataset.cup, -1));
+    el.querySelectorAll('[data-cdown]').forEach(b => b.onclick = () => cmv(+b.dataset.cdown, 1));
+    el.querySelectorAll('[data-cname]').forEach(i => i.addEventListener('input', () => edit(() => { const it = L.cameras.items[+i.dataset.cname]; if (i.value.trim()) it.name = i.value.trim(); else delete it.name; })));
+    el.querySelectorAll('[data-cfit]').forEach(s => s.addEventListener('change', () => edit(() => { L.cameras.items[+s.dataset.cfit].fit = s.value; })));
+  }
   if (tab === 'general') {
     const cals = E.filter(e => e.domain === 'calendar');
     const chosen = new Map((L.sources.calendars || []).map(c => [c.entity, c]));
@@ -821,25 +888,11 @@ function renderPanel() {
       <div class="field"><label>Evento campanello (apre la telecamera quando suonano)</label><select class="in" data-p="sources.doorbell"><option value="">Nessuno</option>${entOptions(e => e.domain === 'event', L.sources.doorbell)}</select></div>
       <div class="lbl" style="margin-bottom:4px">Calendari</div>
       ${cals.length ? cals.map(c => { const ch = chosen.get(c.entity_id); return `<div class="calrow"><input type="checkbox" data-cal="${esc(c.entity_id)}" ${ch ? 'checked' : ''}><span data-raw>${esc(c.name)}</span><input type="color" data-calc="${esc(c.entity_id)}" value="${esc(ch ? ch.color : '#30D158')}"></div>`; }).join('') : '<div class="count">Nessun calendario trovato</div>'}
-      <h3>Pagina Telecamere</h3>
-      <div class="count">Scegli quali telecamere mostrare e in che ordine (1 = schermo intero, 2–4 = griglia 2×2, 5+ = griglia 3 colonne).</div>
-      ${(() => { const sel2 = L.sources.cameras || []; const camsAll = E.filter(e => e.domain === 'camera');
-        const ordered = [...sel2.filter(id => camsAll.some(c => c.entity_id === id)), ...camsAll.map(c => c.entity_id).filter(id => !sel2.includes(id))];
-        return ordered.map(id => { const c = EM[id]; const on = sel2.includes(id); const j = sel2.indexOf(id);
-          return `<div class="mem"><input type="checkbox" data-cam="${esc(id)}" ${on ? 'checked' : ''}><div style="min-width:0" data-raw><div class="n">${esc(c ? c.name : id)}</div><div class="s">${esc(id)}${c ? ' · ' + esc(c.state) : ''}</div></div>
-            <div class="b">${on ? `<button data-cup="${j}"><i class="mdi mdi-chevron-up"></i></button><button data-cdown="${j}"><i class="mdi mdi-chevron-down"></i></button>` : ''}</div></div>`; }).join('') || '<div class="count">Nessuna telecamera trovata</div>'; })()}
       <h3>Ripristino</h3>
       <div class="hint">Prima di ogni "Applica" salvo una copia della dashboard. Puoi tornare a una versione precedente.</div>
       <div style="margin-top:8px">${BACKUPS.slice(0, 8).map(b => `<div class="bk"><span>${esc(b.replace(/^.*-(\d{4})(\d\d)(\d\d)-(\d\d)(\d\d)(\d\d)\.json$/, '$3/$2/$1 $4:$5'))}</span><button class="btn sm" data-restore="${esc(b)}">Ripristina</button></div>`).join('') || '<div class="count">Nessuna copia ancora</div>'}</div>
       <div style="margin-top:14px"><button class="btn danger" id="reset"><i class="mdi mdi-restore"></i>Riporta layout iniziale</button></div>`;
     bindPaths(el);
-    el.querySelectorAll('[data-cam]').forEach(c => c.onchange = () => {
-      edit(() => { const cur = (L.sources.cameras || []).filter(x => x !== c.dataset.cam); if (c.checked) cur.push(c.dataset.cam); L.sources.cameras = cur.length ? cur : [c.dataset.cam]; });
-      renderPanel();
-    });
-    const cmv = (j, dd) => { edit(() => { const a = L.sources.cameras; const k = j + dd; if (k < 0 || k >= a.length) return; [a[j], a[k]] = [a[k], a[j]]; }); renderPanel(); };
-    el.querySelectorAll('[data-cup]').forEach(b => b.onclick = () => cmv(+b.dataset.cup, -1));
-    el.querySelectorAll('[data-cdown]').forEach(b => b.onclick = () => cmv(+b.dataset.cdown, 1));
     const syncCals = () => edit(() => {
       L.sources.calendars = [...el.querySelectorAll('[data-cal]')].filter(c => c.checked).map(c => {
         const id = c.dataset.cal; return {entity: id, name: (EM[id] || {}).name || id, color: el.querySelector(`[data-calc="${id}"]`).value};

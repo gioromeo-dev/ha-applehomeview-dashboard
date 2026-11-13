@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.7.0
+- New Cameras tab: per-camera names and fit, order, layouts (auto, grid 1–4 columns, featured), names, tap action, refresh, spacing, radius, live preview.
+- Nuova scheda Telecamere: nomi e adattamento per telecamera, ordine, disposizioni (automatica, griglia 1–4 colonne, una grande), nomi, azione al tocco, aggiornamento, spazi, arrotondamento, anteprima.
+
 ## 1.6.0
 - Screensaver faces: Clock, Photos, Flow (reacts to a motion sensor), Meridian, Weather, Calendar; rotation, live previews and night mode.
 - Quadranti del salvaschermo: Orologio, Foto, Flusso (reagisce a un sensore di movimento), Meridiana, Meteo, Calendario; rotazione, anteprime e modalità notte.

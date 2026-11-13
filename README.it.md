@@ -44,7 +44,7 @@ Home View Studio è un add-on (app) per Home Assistant. Mette a disposizione:
 | **Aspetto** | Temi rapidi, colore dei quadrati accesi, opacità e sfocatura del vetro, arrotondamento, ombre, dimensioni di testi e icone, numero di colonne (da 3 a 8). |
 | **Quadranti del salvaschermo** | Sei quadranti originali che si alternano quando l'iPad è inattivo: Orologio, Foto (la tua cartella di foto o gli sfondi), Flusso (colori in movimento che si accendono con un sensore di movimento), Meridiana (numeri che sfumano con l'ora), Meteo e Calendario. La modalità notte scurisce e scalda lo schermo. |
 | **Comportamento** | Salvaschermo (WallPanel), schermo intero, modalità kiosk, scorrimento tra le pagine anche col mouse, animazioni, pagine visibili. |
-| **Telecamere** | Scegli quali telecamere mostrare e in che ordine. La griglia si adatta da sola: 1, 2×2 o 3 colonne. |
+| **Telecamere** | Una scheda dedicata con anteprima: scegli quali telecamere mostrare e in che ordine, rinominale, scegli se l'immagine riempie o è intera e la disposizione (automatica, griglia da 1 a 4 colonne, oppure una grande con le altre di lato). In più nomi sì/no, azione al tocco (diretta a schermo intero, dettagli o niente), frequenza di aggiornamento, spazi e arrotondamento. |
 | **Lingua** | Interfaccia e dashboard in **italiano** o **inglese**, in automatico come Home Assistant oppure a scelta in *Generale → Lingua*. |
 | **Sicurezza** | Prima di ogni pubblicazione viene salvata una copia della dashboard, ripristinabile dall'editor. |
 
@@ -55,7 +55,9 @@ Home View Studio è un add-on (app) per Home Assistant. Mette a disposizione:
 | ![Elementi](docs/screenshots/editor-elementi.png) | ![Gruppo](docs/screenshots/editor-gruppo.png) |
 | **Aspetto e sfondi** | **Orologi (Home, Widget, salvaschermo)** |
 | ![Aspetto](docs/screenshots/editor-aspetto.png) | ![Orologi](docs/screenshots/editor-orologi.png) |
-| **Comportamento** | **Generale: sorgenti, telecamere, ripristino** |
+| **Quadranti del salvaschermo** | **Pagina Telecamere** |
+| ![Salvaschermo](docs/screenshots/editor-salvaschermo.png) | ![Telecamere](docs/screenshots/editor-telecamere.png) |
+| **Comportamento** | **Generale: sorgenti, lingua, ripristino** |
 | ![Comportamento](docs/screenshots/editor-comportamento.png) | ![Generale](docs/screenshots/editor-generale.png) |
 
 ![Anteprima della Home](docs/screenshots/anteprima-home.png)
