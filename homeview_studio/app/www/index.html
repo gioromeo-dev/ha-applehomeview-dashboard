@@ -552,7 +552,8 @@ function tileHTML(t, i) {
       const rg = (arr, u) => { if (!arr.length) return '–'; const mn = Math.min(...arr), mx = Math.max(...arr); return (mn === mx ? f(mn) : f(mn) + '–' + f(mx)) + u; };
       const num = sts.filter(s => !isNaN(parseFloat(s.state))); const u = num.length ? (num[0].unit || '') : '';
       label = rg(num.map(s => parseFloat(s.state)), u.startsWith('°') ? '°' : (u ? ' ' + u : ''));
-      const hums = sts.map(s => EM[s.entity_id.replace('temperature', 'humidity')] || EM[s.entity_id.replace('temperatura', 'umidita')]).filter(h => h && h.entity_id.includes('hum') || h && h.entity_id.includes('umid')).filter(h => !isNaN(parseFloat(h.state)));
+      const humOf = (id) => { for (const [x, y] of [['temperature', 'humidity'], ['temperatura', 'umidita'], ['_temp', '_hum']]) { if (id.includes(x)) { const c = id.replace(x, y); if (c !== id && EM[c]) return EM[c]; } } return null; };
+      const hums = sts.map(s => humOf(s.entity_id)).filter(h => h && !isNaN(parseFloat(h.state)));
       if (hums.length) label += ' · ' + rg(hums.map(h => Math.round(parseFloat(h.state))), '%');
     }
     return {cls: n ? 'on' : '', html:`<span class="badge"><i class="mdi mdi-dots-grid"></i> ${(t.entities || []).length}</span><i class="mdi mdi-${esc((t.icon || 'mdi:lightbulb-group-outline').replace(/^mdi:/, ''))} ic"></i><div class="nm" data-raw>${esc(t.name || tr('Gruppo'))}</div><div class="lb">${esc(label)}</div>`};
@@ -591,7 +592,7 @@ function renderCamBoard() {
     const featured = cc.layout === 'featured' && n > 1;
     const sz = featured || n === 1 ? 'width:100%;height:100%' : `height:100%;max-width:100%;aspect-ratio:16/9;justify-self:center`;
     return `<div style="grid-area:c${i};${sz};border-radius:${r}px;overflow:hidden;position:relative;background:#000">
-      ${e && e.picture ? `<img src="${esc(e.picture)}" style="width:100%;height:100%;object-fit:${it.fit || 'cover'};display:block" onerror="this.remove()">` : ''}
+      ${e && e.picture ? `<div style="position:absolute;inset:0;background:url('${esc(e.picture)}') center/${it.fit === 'contain' ? 'contain' : 'cover'} no-repeat"></div>` : ''}
       ${cc.show_names !== false ? `<div data-raw style="position:absolute;left:0;right:0;bottom:0;padding:${18 * k}px ${12 * k}px ${9 * k}px;font-weight:600;font-size:${16 * k}px;color:#fff;background:linear-gradient(to top,rgba(0,0,0,.55),transparent)">${esc(name)}</div>` : ''}</div>`;
   }).join('') : '<div class="empty" style="grid-column:1/-1;color:#fff">Nessuna telecamera selezionata</div>';
 }

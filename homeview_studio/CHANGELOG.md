@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.9.2
+- Editor: humidity shown next to temperatures in the preview; more reliable camera previews. Updated screenshots.
+- Editor: umidità accanto alle temperature anche nell'anteprima; anteprima telecamere più affidabile. Screenshot aggiornati.
+
 ## 1.9.1
 - Sensor groups show the value range; temperature sensors get their matching humidity (tile and popup).
 - I gruppi di sensori mostrano l'intervallo dei valori; accanto alle temperature compare l'umidità (quadrato e popup).

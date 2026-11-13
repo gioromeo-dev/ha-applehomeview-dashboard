@@ -58,10 +58,12 @@ Home View Studio is an add-on (app) for Home Assistant. It provides:
 | ![Items](docs/screenshots/en/editor-elementi.png) | ![Group](docs/screenshots/en/editor-gruppo.png) |
 | **Appearance and wallpapers** | **Clocks (Home, Widgets, screensaver)** |
 | ![Appearance](docs/screenshots/en/editor-aspetto.png) | ![Clocks](docs/screenshots/en/editor-orologi.png) |
-| **Screensaver faces** | **Cameras page** |
-| ![Screensaver](docs/screenshots/en/editor-salvaschermo.png) | ![Cameras](docs/screenshots/en/editor-telecamere.png) |
-| **Behavior** | **General: sources, language, restore** |
-| ![Behavior](docs/screenshots/en/editor-comportamento.png) | ![General](docs/screenshots/en/editor-generale.png) |
+| **Icon picker** | **Screensaver faces** |
+| ![Icons](docs/screenshots/en/editor-icone.png) | ![Screensaver](docs/screenshots/en/editor-salvaschermo.png) |
+| **Cameras page** | **Behavior** |
+| ![Cameras](docs/screenshots/en/editor-telecamere.png) | ![Behavior](docs/screenshots/en/editor-comportamento.png) |
+| **General: sources, language, restore** | |
+| ![General](docs/screenshots/en/editor-generale.png) | |
 
 ![Home preview](docs/screenshots/en/anteprima-home.png)
 
