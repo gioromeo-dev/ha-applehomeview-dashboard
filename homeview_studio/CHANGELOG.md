@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.8.1
+- Layout import: put `/config/homeview_studio/import.json` and restart the add-on (keys starting with `_`: `_merge`, `_apply`, `_lang`).
+- Importazione layout: metti `/config/homeview_studio/import.json` e riavvia l'add-on.
+
 ## 1.8.0
 - "Propose a Home": analyzes your devices and builds a layout with groups (lights, plugs, scenes, temperatures, rooms) you can keep or undo.
 - Fixed: screensaver faces showed "ButtonCardJSTemplateError".

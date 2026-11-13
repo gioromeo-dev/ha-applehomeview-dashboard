@@ -381,7 +381,30 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(400, {"error": str(e)})
 
 
+def import_layout_file():
+    """/config/homeview_studio/import.json -> merged into the saved layout (optionally published), then renamed."""
+    path = os.path.join(HA_CONFIG, "homeview_studio", "import.json")
+    if not os.path.exists(path):
+        return
+    try:
+        with open(path, encoding="utf-8") as f:
+            data = json.load(f)
+        opts = {k: data.pop(k) for k in list(data) if k.startswith("_")}
+        lay = load_layout() if opts.get("_merge", True) else generator.normalize(None)
+        lay.update(data)
+        lay = generator.normalize(lay)
+        save_layout(lay)
+        log("layout imported from", path)
+        if opts.get("_apply"):
+            log("applied", apply_layout(lay, opts.get("_lang")))
+        os.replace(path, path + time.strftime(".done-%Y%m%d-%H%M%S"))
+    except Exception as e:  # noqa: BLE001
+        log("layout import failed:", e)
+        traceback.print_exc()
+
+
 if __name__ == "__main__":
     log(f"Home View Studio on :{PORT} (config dir {HA_CONFIG})")
     install_bundled_wallpapers()
+    import_layout_file()
     ThreadingHTTPServer(("0.0.0.0", PORT), Handler).serve_forever()
