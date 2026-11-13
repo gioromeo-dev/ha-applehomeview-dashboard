@@ -160,7 +160,7 @@ def deep_merge(dst, src):
 DEFAULT_LAYOUT = {
     "version": 1,
     "language": "auto",
-    "dashboard": {"url_path": "home-view", "title": "Home View"},
+    "dashboard": {"url_path": "home-view", "title": "Home View", "icons": {"widgets": "", "home": "", "cameras": ""}},
     "grid": {"columns": 5, "calendar_bar": True},
     "tiles": [
         {"kind": "weather", "x": 0, "y": 0, "w": 2, "h": 2},
@@ -717,6 +717,10 @@ def generate(base, layout, info=None, lang=None, wallpapers=None):
     if not beh.get("show_cameras", True):
         d["views"] = [v for v in d["views"] if v.get("path") != "cameras"]
 
+    for v in d["views"]:
+        ic = (dash.get("icons") or {}).get(v.get("path"))
+        if ic:
+            v["icon"] = ic
     d["title"] = dash.get("title") or "Home View"
     lang = lang or L.get("language", "it")
     if lang == "en":

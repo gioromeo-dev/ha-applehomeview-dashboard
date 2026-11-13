@@ -150,6 +150,12 @@ input[type=color]{width:36px;height:30px;padding:0;border:1px solid var(--line2)
 .faceprev>div{position:relative}
 .faceprev .fp-in{aspect-ratio:4/3;border-radius:12px;overflow:hidden;container-type:size;background:#000}
 .faceprev span{display:block;font-size:11px;color:var(--mut);margin-top:3px;text-align:center}
+.ip-cur{flex:0 0 34px!important;height:34px;border-radius:9px;background:var(--panel2);display:grid;place-items:center;font-size:22px}
+.ip-pop{margin-top:8px;padding:10px;border:1px solid var(--line2);border-radius:10px;background:var(--bg)}
+.ip-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(34px,1fr));gap:4px}
+.ip-grid button{aspect-ratio:1;border:1px solid transparent;background:var(--panel2);border-radius:8px;cursor:pointer;font-size:20px;color:var(--txt);padding:0}
+.ip-grid button:hover{border-color:var(--line2)}.ip-grid button.on{border-color:var(--acc);background:rgba(10,132,255,.18)}
+.ip-res{max-height:220px;overflow:auto;margin-top:6px}
 .calrow{display:grid;grid-template-columns:20px 1fr 36px;gap:8px;align-items:center;padding:5px 0}
 .hint{font-size:12px;color:var(--mut);background:var(--panel2);border-radius:10px;padding:10px 12px;line-height:1.5}
 .hint b{color:var(--txt)}
@@ -369,6 +375,68 @@ function addMembers(i, ids) {
   edit(() => { g.entities = [...(g.entities || []), ...nu]; sel = i; });
   renderInsp(); renderPanel(); toast(`${nu.length === 1 ? esc((EM[nu[0]] || {}).name || nu[0]) + ' aggiunto' : nu.length + ' dispositivi aggiunti'} a «${esc(g.name)}»`);
 }
+// ---------------------------------------------------------------- icon picker
+const ICON_PRESETS = {
+  light: ['lightbulb', 'lightbulb-outline', 'lamp', 'lamp-outline', 'floor-lamp', 'floor-lamp-outline', 'ceiling-light', 'ceiling-light-outline', 'desk-lamp', 'led-strip-variant', 'string-lights', 'chandelier', 'wall-sconce', 'track-light', 'outdoor-lamp', 'lightbulb-group'],
+  switch: ['power-socket-eu', 'power-plug', 'power-plug-outline', 'toggle-switch', 'fan', 'coffee-maker', 'television', 'laptop', 'cellphone-charging', 'pine-tree', 'string-lights', 'robot-vacuum', 'washing-machine', 'kettle', 'heater', 'radiator'],
+  scene: ['palette', 'palette-outline', 'movie-open-outline', 'weather-night', 'sofa', 'party-popper', 'candle', 'bed', 'weather-sunny', 'coffee', 'book-open-variant', 'gamepad-variant', 'silverware-fork-knife', 'pine-tree', 'heart', 'star'],
+  script: ['script-text-outline', 'play', 'home-export-outline', 'home-import-outline', 'bed', 'run'],
+  climate: ['air-conditioner', 'thermostat', 'snowflake', 'fire', 'fan', 'radiator', 'heat-wave', 'water-percent'],
+  media_player: ['television', 'cast', 'speaker', 'apple', 'music', 'play-circle-outline', 'remote-tv', 'soundbar', 'speaker-multiple', 'radio'],
+  binary_sensor: ['door', 'door-open', 'door-closed', 'window-closed-variant', 'window-open-variant', 'motion-sensor', 'run', 'garage', 'water-alert', 'smoke-detector'],
+  sensor: ['thermometer', 'water-percent', 'gauge', 'flash', 'lightning-bolt', 'molecule-co2', 'battery', 'sun-thermometer', 'weather-windy', 'counter'],
+  cover: ['window-shutter', 'window-shutter-open', 'blinds', 'curtains', 'garage', 'garage-open'],
+  lock: ['lock', 'lock-open-variant', 'shield-home', 'key', 'door-closed-lock'],
+  camera: ['cctv', 'camera', 'doorbell-video', 'webcam', 'video'],
+  input_boolean: ['toggle-switch', 'toggle-switch-outline', 'shield-home', 'alarm-light', 'bell', 'power'],
+  group: ['lightbulb-group', 'lightbulb-group-outline', 'power-socket-eu', 'palette-outline', 'thermometer', 'sofa', 'bed', 'home', 'home-outline', 'silverware-fork-knife', 'shower', 'desk', 'television', 'shield-home', 'pine-tree', 'flower'],
+  view: ['view-dashboard', 'view-dashboard-outline', 'home', 'home-outline', 'widgets', 'widgets-outline', 'cctv', 'view-grid', 'calendar', 'weather-partly-cloudy', 'image', 'clock-outline', 'lightbulb-group', 'tablet'],
+};
+let ALL_ICONS = null;
+async function loadAllIcons() {
+  if (ALL_ICONS) return ALL_ICONS;
+  try {
+    const href = [...document.querySelectorAll('link[rel=stylesheet]')].map(l => l.href).find(h => h.includes('materialdesignicons'));
+    const css = await (await fetch(href)).text();
+    ALL_ICONS = [...new Set([...css.matchAll(/\.mdi-([a-z0-9-]+)::?before/g)].map(m => m[1]))].sort();
+  } catch (e) { ALL_ICONS = []; }
+  return ALL_ICONS;
+}
+function iconPickerHTML(id, current, deviceIcon, presetKey) {
+  const cur = (current || deviceIcon || 'mdi:help-circle-outline').replace(/^mdi:/, '');
+  const dev = (deviceIcon || '').replace(/^mdi:/, '');
+  const presets = [...new Set([...(ICON_PRESETS[presetKey] || []), ...(dev ? [dev] : [])])];
+  return `<div class="ipick" data-ipick="${esc(id)}">
+    <div class="row"><span class="ip-cur"><i class="mdi mdi-${esc(cur)}"></i></span>
+      <input class="in ip-in" value="${esc(current || '')}" placeholder="${esc(deviceIcon ? deviceIcon + ' (dispositivo)' : 'mdi:…')}">
+      <button class="btn sm ip-toggle" type="button"><i class="mdi mdi-shape-outline"></i>Scegli</button></div>
+    <div class="ip-pop" hidden>
+      ${deviceIcon !== undefined ? `<button class="btn sm ip-dev" type="button"><i class="mdi mdi-${esc(dev || 'restore')}"></i>${dev ? 'Usa l\'icona del dispositivo' : 'Icona automatica'}</button>` : ''}
+      <div class="lbl" style="margin:8px 0 4px">Suggerite</div>
+      <div class="ip-grid">${presets.map(n => `<button type="button" title="mdi:${esc(n)}" data-icon="${esc(n)}" class="${cur === n ? 'on' : ''}"><i class="mdi mdi-${esc(n)}"></i></button>`).join('')}</div>
+      <input class="in ip-search" placeholder="Cerca tra tutte le icone (nomi in inglese, es. sofa)…" style="margin-top:8px">
+      <div class="ip-grid ip-res"></div>
+    </div></div>`;
+}
+function bindIconPicker(root, id, onChange) {
+  const box = root.querySelector(`[data-ipick="${CSS.escape(id)}"]`); if (!box) return;
+  const pop = box.querySelector('.ip-pop'), inp = box.querySelector('.ip-in'), res = box.querySelector('.ip-res');
+  const set = (v) => { onChange(v ? (v.includes(':') ? v : 'mdi:' + v) : ''); };
+  box.querySelector('.ip-toggle').onclick = () => { pop.hidden = !pop.hidden; if (!pop.hidden) loadAllIcons(); };
+  inp.addEventListener('change', () => set(inp.value.trim()));
+  box.querySelectorAll('.ip-grid:not(.ip-res) [data-icon]').forEach(b => b.onclick = () => set(b.dataset.icon));
+  const dev = box.querySelector('.ip-dev'); if (dev) dev.onclick = () => set('');
+  const search = box.querySelector('.ip-search');
+  search.addEventListener('input', async () => {
+    const q = search.value.trim().toLowerCase().replace(/\s+/g, '-');
+    if (q.length < 2) { res.innerHTML = ''; return; }
+    const all = await loadAllIcons();
+    const hits = all.filter(n => n.includes(q)).slice(0, 96);
+    res.innerHTML = hits.map(n => `<button type="button" title="mdi:${esc(n)}" data-icon="${esc(n)}"><i class="mdi mdi-${esc(n)}"></i></button>`).join('') || `<div class="count" style="grid-column:1/-1">Nessuna icona trovata</div>`;
+    res.querySelectorAll('[data-icon]').forEach(b => b.onclick = () => set(b.dataset.icon));
+  });
+}
+
 // ---------------------------------------------------------------- automatic proposal
 function proposeHome() {
   const cols = L.grid.columns || 5;
@@ -640,8 +708,7 @@ function renderInsp() {
       <div class="field"><label>Etichetta (testo piccolo)</label><input class="in" data-k="label" value="${esc(t.label || '')}" placeholder="vuota = stato automatico"></div>`;
   }
   if (t.kind === 'entity') {
-    h += `<div class="field"><label>Icona <a href="https://pictogrammers.com/library/mdi/" target="_blank" style="color:var(--acc)">sfoglia</a></label>
-        <div class="row"><input class="in" data-k="icon" value="${esc(t.icon || '')}" placeholder="${esc((e && e.icon) || 'automatica, es. mdi:lamp')}"><i class="mdi mdi-${esc(icon)}" style="flex:0 0 28px;font-size:24px;text-align:center"></i></div></div>
+    h += `<div class="field"><label>Icona</label>${iconPickerHTML('tile', t.icon, (e && e.icon) || ('mdi:' + (DOM_ICON[dom(t.entity)] || 'help-circle-outline')), dom(t.entity))}</div>
       <div class="field"><label>Stile del quadrato</label><select class="in" data-k="style">${Object.entries(STYLE_NAMES).map(([v, n]) => opt(v, v === 'auto' ? `Automatico (${STYLE_NAMES[autoStyle(t)]})` : n, t.style || 'auto')).join('')}</select></div>
       <div class="field"><label>Azione al tocco</label><select class="in" data-k="tap">${Object.entries(TAP_NAMES).map(([v, n]) => opt(v, n, t.tap || 'auto')).join('')}</select></div>`;
     if (t.tap === 'navigate') h += `<div class="field"><label>Destinazione</label><input class="in" data-k="navigation_path" value="${esc(t.navigation_path || '')}" placeholder="/${esc(L.dashboard.url_path)}/cameras oppure #weather"></div>`;
@@ -651,8 +718,7 @@ function renderInsp() {
     const doms = [...new Set(E.map(x => x.domain))].filter(d => KNOWN.has(d)).sort();
     const areas = [...new Set(E.map(x => x.area).filter(Boolean))].sort();
     h += `<div class="field"><label>Nome</label><input class="in" data-k="name" value="${esc(t.name || '')}"></div>
-      <div class="field"><label>Icona <a href="https://pictogrammers.com/library/mdi/" target="_blank" style="color:var(--acc)">sfoglia</a></label>
-        <div class="row"><input class="in" data-k="icon" value="${esc(t.icon || '')}" placeholder="mdi:lightbulb-group-outline"><i class="mdi mdi-${esc(icon)}" style="flex:0 0 28px;font-size:24px;text-align:center"></i></div></div>
+      <div class="field"><label>Icona</label>${iconPickerHTML('tile', t.icon, 'mdi:lightbulb-group-outline', 'group')}</div>
       <div class="field"><label>Etichetta</label><input class="in" data-k="label" value="${esc(t.label || '')}" placeholder="vuota = «2 accesi su 5»"></div>
       <div class="field"><label>Pressione prolungata sul quadrato</label><select class="in" data-k="hold">${opt('toggle_all', 'Accendi / spegni tutto', t.hold || 'toggle_all')}${opt('none', 'Nessuna', t.hold || 'toggle_all')}</select></div>
       <h3>Dispositivi nel gruppo (${mem.length})</h3>
@@ -689,6 +755,7 @@ function renderInsp() {
     };
     inp.addEventListener(inp.tagName === 'SELECT' ? 'change' : 'input', apply);
   });
+  bindIconPicker(el, 'tile', (v) => { edit(() => { if (v) t.icon = v; else delete t.icon; }); renderInsp(); const pp = $('#insp .ip-pop'); if (pp) pp.hidden = false; });
   el.querySelectorAll('[data-size]').forEach(b => b.onclick = () => {
     const [w, hh] = b.dataset.size.split(',').map(Number);
     if (!fits(t.x, t.y, w, hh, sel)) return toast('Non c\'è spazio: sposta prima i quadrati vicini', true);
@@ -944,6 +1011,8 @@ function renderPanel() {
       <h3>Dashboard</h3>
       <div class="field"><label>Titolo</label><input class="in" data-p="dashboard.title" value="${esc(L.dashboard.title)}"></div>
       <div class="field"><label>Indirizzo (deve contenere un trattino)</label><input class="in" data-p="dashboard.url_path" value="${esc(L.dashboard.url_path)}"></div>
+      <div class="lbl" style="margin:4px 0 6px">Icone delle schede (vuota = mostra il nome)</div>
+      ${[['widgets', 'Widget'], ['home', 'Home'], ['cameras', 'Telecamere']].map(([k, n]) => `<div class="field"><label>${n}</label>${iconPickerHTML('view-' + k, (L.dashboard.icons || {})[k], '', 'view')}</div>`).join('')}
       <h3>Sorgenti</h3>
       <div class="field"><label>Meteo</label><select class="in" data-p="sources.weather">${entOptions(e => e.domain === 'weather', L.sources.weather)}</select></div>
       <div class="field"><label>Telecamera principale (pagina Telecamere e campanello)</label><select class="in" data-p="sources.camera">${entOptions(e => e.domain === 'camera', L.sources.camera)}</select></div>
@@ -955,6 +1024,7 @@ function renderPanel() {
       <div style="margin-top:8px">${BACKUPS.slice(0, 8).map(b => `<div class="bk"><span>${esc(b.replace(/^.*-(\d{4})(\d\d)(\d\d)-(\d\d)(\d\d)(\d\d)\.json$/, '$3/$2/$1 $4:$5'))}</span><button class="btn sm" data-restore="${esc(b)}">Ripristina</button></div>`).join('') || '<div class="count">Nessuna copia ancora</div>'}</div>
       <div style="margin-top:14px"><button class="btn danger" id="reset"><i class="mdi mdi-restore"></i>Riporta layout iniziale</button></div>`;
     bindPaths(el);
+    ['widgets', 'home', 'cameras'].forEach(k => bindIconPicker(el, 'view-' + k, (v) => { edit(() => { L.dashboard.icons = L.dashboard.icons || {}; L.dashboard.icons[k] = v; }); renderPanel(); }));
     const syncCals = () => edit(() => {
       L.sources.calendars = [...el.querySelectorAll('[data-cal]')].filter(c => c.checked).map(c => {
         const id = c.dataset.cal; return {entity: id, name: (EM[id] || {}).name || id, color: el.querySelector(`[data-calc="${id}"]`).value};

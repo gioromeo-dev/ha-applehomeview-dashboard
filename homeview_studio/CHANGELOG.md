@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.9.0
+- Visual icon picker for tiles and groups (device icon, suggestions, search) and icons for the dashboard tabs.
+- Selettore visuale delle icone per quadrati e gruppi (icona del dispositivo, suggerite, ricerca) e icone delle schede.
+
 ## 1.8.1
 - Layout import: put `/config/homeview_studio/import.json` and restart the add-on (keys starting with `_`: `_merge`, `_apply`, `_lang`).
 - Importazione layout: metti `/config/homeview_studio/import.json` e riavvia l'add-on.

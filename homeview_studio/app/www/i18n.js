@@ -97,6 +97,10 @@ const I18N_EN = {
   'Proponi una Home': 'Propose a Home', 'Porta': 'Door', 'Finestra': 'Window', 'Prese': 'Plugs', 'Temperature': 'Temperatures', 'Interruttori': 'Switches',
   'Tieni': 'Keep', 'Torna a prima': 'Go back', 'Proposta:': 'Proposal:',
   'quadrati. Puoi ancora modificarli; premi': 'tiles. You can still edit them; press', 'per pubblicarla.': 'to publish it.',
+  // icon picker
+  'Scegli': 'Choose', "Usa l'icona del dispositivo": "Use the device's icon", 'Icona automatica': 'Automatic icon', 'Suggerite': 'Suggested',
+  'Cerca tra tutte le icone (nomi in inglese, es. sofa)…': 'Search all icons (e.g. sofa)…', 'Nessuna icona trovata': 'No icons found',
+  'Icone delle schede (vuota = mostra il nome)': 'Tab icons (empty = show the name)', 'Home': 'Home',
   // general
   'Dashboard': 'Dashboard', 'Titolo': 'Title', 'Indirizzo (deve contenere un trattino)': 'Address (must contain a hyphen)', 'Sorgenti': 'Sources',
   'Telecamera principale (pagina Telecamere e campanello)': 'Main camera (Cameras page and doorbell)',
@@ -133,6 +137,7 @@ const I18N_PATTERNS = [
   [/^colonna (\d+), riga (\d+)$/, 'column $1, row $2'],
   [/^(\d+) access?[oi] su (\d+)$/, '$1 on of $2'],
   [/^Notte: (.+)$/, 'Night: $1'],
+  [/^(mdi:[a-z0-9-]+) \(dispositivo\)$/, '$1 (device)'],
   [/^Carico (.+)…$/, 'Uploading $1…'],
   [/^Automatico \((.+)\)$/, (m, a) => 'Automatic (' + (I18N_EN[a] || a) + ')'],
   [/^(Dispositivo|Gruppo|Meteo|Orologio|Telecamera)( · .*)?$/, (m, k, rest) => (I18N_EN[k] || k) + (rest || '').replace(' · stato: ', ' · state: ')],
