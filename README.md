@@ -44,6 +44,7 @@ Home View Studio is an add-on (app) for Home Assistant. It provides:
 | **Clocks** | 6 clock faces (Classic, Minimal, Big numerals, Digital, Hours & minutes, Solar) plus the original one. Pick one separately for the Home clock tile, the Widgets page and the screensaver. |
 | **Wallpapers** | 7 original wallpapers included (light and dark), plus your own, uploaded from the editor. You can set a different **night** wallpaper that switches automatically at sunset. |
 | **Appearance** | Quick themes, color of tiles that are on, glass opacity and blur, corner radius, shadows, text and icon sizes, number of columns (3 to 8). |
+| **Screensaver faces** | Six original faces that rotate while the iPad is idle: Clock, Photos (your photo folder or wallpapers), Flow (moving colors that brighten when a motion sensor triggers), Meridian (numerals fading with the time), Weather and Calendar. Night mode dims and warms the screen. |
 | **Behavior** | Screensaver (WallPanel), full screen, kiosk mode, swiping between pages (mouse too), animations, which pages are shown. |
 | **Cameras** | Choose which cameras to show and in what order. The grid adapts automatically: 1, 2×2 or 3 columns. |
 | **Language** | Editor and dashboard in **English** or **Italian**, automatic (same as Home Assistant) or chosen in *General → Language*. |

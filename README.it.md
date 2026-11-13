@@ -42,6 +42,7 @@ Home View Studio è un add-on (app) per Home Assistant. Mette a disposizione:
 | **Orologi** | 6 quadranti (Classico, Minimal, Numeri grandi, Digitale, Ore e minuti, Solare) più l'originale. Si scelgono separatamente per il quadrato della Home, per la pagina Widget e per il salvaschermo. |
 | **Sfondi** | 7 sfondi originali inclusi (chiari e scuri), più i tuoi, caricabili dall'editor. Puoi scegliere uno sfondo diverso **per la notte**, che cambia da solo al tramonto. |
 | **Aspetto** | Temi rapidi, colore dei quadrati accesi, opacità e sfocatura del vetro, arrotondamento, ombre, dimensioni di testi e icone, numero di colonne (da 3 a 8). |
+| **Quadranti del salvaschermo** | Sei quadranti originali che si alternano quando l'iPad è inattivo: Orologio, Foto (la tua cartella di foto o gli sfondi), Flusso (colori in movimento che si accendono con un sensore di movimento), Meridiana (numeri che sfumano con l'ora), Meteo e Calendario. La modalità notte scurisce e scalda lo schermo. |
 | **Comportamento** | Salvaschermo (WallPanel), schermo intero, modalità kiosk, scorrimento tra le pagine anche col mouse, animazioni, pagine visibili. |
 | **Telecamere** | Scegli quali telecamere mostrare e in che ordine. La griglia si adatta da sola: 1, 2×2 o 3 colonne. |
 | **Lingua** | Interfaccia e dashboard in **italiano** o **inglese**, in automatico come Home Assistant oppure a scelta in *Generale → Lingua*. |
