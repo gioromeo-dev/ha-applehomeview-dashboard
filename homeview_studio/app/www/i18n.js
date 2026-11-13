@@ -74,6 +74,16 @@ const I18N_EN = {
   'Scorrimento circolare': 'Wrap around', "Dall'ultima pagina torna alla prima": 'From the last page back to the first', 'Pagina Widget': 'Widgets page',
   'Pagina Telecamere': 'Cameras page', 'Pressione prolungata su un quadrato': 'Long press on a tile', 'Vibrazione al tocco': 'Haptic feedback',
   "Solo nell'app Home Assistant": 'Home Assistant app only',
+  // screensaver faces
+  'Quadranti del salvaschermo': 'Screensaver faces', 'Scegli quali quadranti mostrare e in che ordine: si alternano da soli.': 'Choose which faces to show and in what order: they rotate automatically.',
+  'Foto': 'Photos', 'Flusso': 'Flow', 'Meridiana': 'Meridian', 'Calendario': 'Calendar',
+  "L'orologio scelto in Aspetto, a tutto schermo": 'The clock chosen in Appearance, full screen', 'Cornice digitale con le tue foto o i tuoi sfondi': 'Digital frame with your photos or wallpapers',
+  'Colori in movimento, più vivi quando rileva movimento': 'Moving colors, brighter when motion is detected', "Numeri che si accendono e sfumano seguendo l'ora": 'Numerals that light up and fade with the time',
+  'Temperatura, condizioni e prossimi giorni': 'Temperature, conditions and the next days', 'Data e prossimi impegni': 'Date and upcoming events',
+  'Cambia quadrante ogni (secondi)': 'Change face every (seconds)', 'Foto dalla cartella Photo Slideshow': 'Photos from the Photo Slideshow folder',
+  'Media → Media locali → Photo Slideshow. Se è vuota uso i tuoi sfondi': 'Media → Local media → Photo Slideshow. If empty, your wallpapers are used',
+  'Cambia foto ogni (secondi)': 'Change photo every (seconds)', 'Sensore di movimento per il quadrante Flusso': 'Motion sensor for the Flow face',
+  'Modalità notte': 'Night mode', 'Salvaschermo più scuro e caldo di notte': 'Darker, warmer screensaver at night', 'Dalle': 'From', 'Alle': 'To', 'Luminosità di notte': 'Night brightness',
   // general
   'Dashboard': 'Dashboard', 'Titolo': 'Title', 'Indirizzo (deve contenere un trattino)': 'Address (must contain a hyphen)', 'Sorgenti': 'Sources',
   'Telecamera principale (pagina Telecamere e campanello)': 'Main camera (Cameras page and doorbell)',

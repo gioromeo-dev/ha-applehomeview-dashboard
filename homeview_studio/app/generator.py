@@ -5,6 +5,9 @@ import os
 import re
 
 CLOCK_JS = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "clock.js"), encoding="utf-8").read()
+FACES_JS = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "faces.js"), encoding="utf-8").read()
+FACE_IDS = ["clock", "photos", "flow", "meridian", "weather", "calendar"]
+PHOTO_DIR = "media-source://media_source/local/Photo Slideshow"
 CLOCK_STYLES = ["original", "classic", "minimal", "bold", "digital", "stacked", "solar"]
 SCREEN_W = "Math.max(100, 100 * (((window.innerWidth || 1180) - 28) / ((window.innerHeight || 820) - 28)))"
 
@@ -198,6 +201,15 @@ DEFAULT_LAYOUT = {
         "kiosk_always": False,
         "hold_action": "more-info",
         "haptic": True,
+        "faces": ["clock"],
+        "face_interval": 60,
+        "photo_folder": True,
+        "photo_interval": 20,
+        "motion_entity": "",
+        "night_mode": False,
+        "night_start": "22:30",
+        "night_end": "07:00",
+        "night_dim": 0.35,
         "show_widgets": True,
         "show_cameras": True,
     },
@@ -437,7 +449,14 @@ def to_english(d):
     return json.loads(text)
 
 
-def generate(base, layout, info=None, lang=None):
+def faces_js(cfg):
+    return ("[[[\nconst d = new Date();\nconst CFG = %s;\n"
+            "CFG.aspect = ((window.innerWidth || 1180) - 28) / ((window.innerHeight || 820) - 28);\n"
+            "const CLOCK = (d, STYLE, ACC, FG, W, BG) => {\n%s\n};\n%s\n]]]"
+            % (json.dumps(cfg, ensure_ascii=False), CLOCK_JS, FACES_JS))
+
+
+def generate(base, layout, info=None, lang=None, wallpapers=None):
     """info: optional {entity_id: {device_class, icon}} used for automatic tile styles."""
     L = normalize(layout)
     src, th, beh, dash = L["sources"], L["theme"], L["behavior"], L["dashboard"]
@@ -586,9 +605,26 @@ def generate(base, layout, info=None, lang=None):
         tpl["hw_widgets"]["custom_fields"]["clock"] = clock_js(cw, "#E8590C", "#0B0B0C")
     cs = th.get("clock_screensaver", "original")
     wcards = d.get("wallpanel", {}).get("cards") or []
-    if cs != "original" and wcards and "c" in wcards[0].get("custom_fields", {}):
-        wcards[0]["custom_fields"]["c"] = clock_js(cs, acc, th.get("screensaver_text") or "#0B0B0C", SCREEN_W, True)
-        wcards[0]["update_timer"] = 10000
+    faces = [f for f in (beh.get("faces") or ["clock"]) if f in FACE_IDS] or ["clock"]
+    simple = faces == ["clock"] and not beh.get("night_mode")
+    if wcards and "c" in wcards[0].get("custom_fields", {}):
+        if simple and cs != "original":
+            wcards[0]["custom_fields"]["c"] = clock_js(cs, acc, th.get("screensaver_text") or "#0B0B0C", SCREEN_W, True)
+            wcards[0]["update_timer"] = 10000
+        elif not simple:
+            cfg = {
+                "faces": faces, "interval": int(beh.get("face_interval", 60)),
+                "clockStyle": "bold" if cs == "original" else cs, "accent": acc, "fg": th.get("screensaver_text") or "#0B0B0C",
+                "lang": lang if lang in ("it", "en") else (L.get("language") if L.get("language") in ("it", "en") else "it"),
+                "photos": [u for u in (wallpapers or []) if not u.split("?")[0].endswith("-dark.jpg")][:60],
+                "photoDir": PHOTO_DIR if beh.get("photo_folder", True) else "", "photoInterval": int(beh.get("photo_interval", 20)),
+                "motion": beh.get("motion_entity") or "", "weather": src.get("weather"),
+                "cals": {c["entity"]: c.get("color") or "#FF9F0A" for c in cals},
+                "night": {"on": bool(beh.get("night_mode")), "start": beh.get("night_start", "22:30"),
+                          "end": beh.get("night_end", "07:00"), "dim": float(beh.get("night_dim", 0.35))},
+            }
+            wcards[0]["custom_fields"]["c"] = faces_js(cfg)
+            wcards[0]["update_timer"] = 5000
 
     # ---------- light/dark wallpaper following the sun ----------
     dark = th.get("background_dark")

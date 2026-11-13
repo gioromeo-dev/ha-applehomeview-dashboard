@@ -1,5 +1,5 @@
 name: Home View Studio
-version: "1.5.1"
+version: "1.6.0"
 slug: homeview_studio
 description: Visual editor for a smart-display style iPad dashboard (devices, groups, wallpapers, clocks, behavior). EN/IT.
 url: https://github.com/gioromeo-dev/ha-applehomeview-dashboard

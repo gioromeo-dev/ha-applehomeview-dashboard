@@ -228,7 +228,7 @@ def apply_layout(layout):
         if lang not in ("it", "en"):
             core_lang = (ws.call("get_config") or {}).get("language") or "en"
             lang = "it" if core_lang.startswith("it") else "en"
-        cfg = generator.generate(load_base(), layout, info, lang)
+        cfg = generator.generate(load_base(), layout, info, lang, [b["url"] for b in list_backgrounds()])
         dash = ws.call("lovelace/dashboards/list")
         existing = next((d for d in dash if d.get("url_path") == url), None)
         if not existing:
@@ -322,6 +322,9 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send(200, list_backups())
             if p == "/i18n.js":
                 with open(os.path.join(APP, "www", "i18n.js"), "rb") as f:
+                    return self._send(200, f.read(), "text/javascript; charset=utf-8")
+            if p == "/api/faces.js":
+                with open(os.path.join(APP, "faces.js"), "rb") as f:
                     return self._send(200, f.read(), "text/javascript; charset=utf-8")
             if p == "/api/clock.js":
                 with open(os.path.join(APP, "clock.js"), "rb") as f:

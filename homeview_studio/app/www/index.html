@@ -141,6 +141,10 @@ input[type=color]{width:36px;height:30px;padding:0;border:1px solid var(--line2)
 .bgs label{aspect-ratio:4/3;border-radius:8px;border:1px dashed var(--line2);display:grid;place-items:center;cursor:pointer;color:var(--mut);font-size:11px;text-align:center}
 .presets{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .presets button{border:1px solid var(--line2);border-radius:10px;padding:8px 4px;cursor:pointer;font-size:12px;color:#fff}
+.faceprev{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 14px}
+.faceprev>div{position:relative}
+.faceprev .fp-in{aspect-ratio:4/3;border-radius:12px;overflow:hidden;container-type:size;background:#000}
+.faceprev span{display:block;font-size:11px;color:var(--mut);margin-top:3px;text-align:center}
 .calrow{display:grid;grid-template-columns:20px 1fr 36px;gap:8px;align-items:center;padding:5px 0}
 .hint{font-size:12px;color:var(--mut);background:var(--panel2);border-radius:10px;padding:10px 12px;line-height:1.5}
 .hint b{color:var(--txt)}
@@ -219,7 +223,29 @@ const PRESETS = {
 };
 
 let L = null;               // layout
-let CLOCK = null, CLOCK_SRC = '', bgMode = 'day';
+let CLOCK = null, CLOCK_SRC = '', bgMode = 'day', FACES = null, FACES_SRC = '';
+const FACE_IDS = ['clock', 'photos', 'flow', 'meridian', 'weather', 'calendar'];
+const FACE_NAMES = {clock:'Orologio', photos:'Foto', flow:'Flusso', meridian:'Meridiana', weather:'Meteo', calendar:'Calendario'};
+const FACE_DESC = {clock:'L\'orologio scelto in Aspetto, a tutto schermo', photos:'Cornice digitale con le tue foto o i tuoi sfondi', flow:'Colori in movimento, più vivi quando rileva movimento',
+  meridian:'Numeri che si accendono e sfumano seguendo l\'ora', weather:'Temperatura, condizioni e prossimi giorni', calendar:'Data e prossimi impegni'};
+function facesList() {
+  const sel = L.behavior.faces || ['clock'];
+  const order = [...sel, ...FACE_IDS.filter(f => !sel.includes(f))];
+  return order.map(f => { const on = sel.includes(f), j = sel.indexOf(f);
+    return `<div class="mem"><input type="checkbox" data-face="${f}" ${on ? 'checked' : ''}><div style="min-width:0"><div class="n">${FACE_NAMES[f]}</div><div class="s">${FACE_DESC[f]}</div></div>
+      <div class="b">${on ? `<button data-fup="${j}" title="Su"><i class="mdi mdi-chevron-up"></i></button><button data-fdown="${j}" title="Giù"><i class="mdi mdi-chevron-down"></i></button>` : ''}</div></div>`; }).join('');
+}
+function facePreview(f) {
+  if (!FACES || !CLOCK) return '';
+  const states = Object.fromEntries(E.map(e => [e.entity_id, {state: e.state, attributes: Object.assign({}, e.attrs, {unit_of_measurement: e.unit, device_class: e.device_class})}]));
+  const th = L.theme, b = L.behavior;
+  const cfg = {faces: [f], interval: 60, clockStyle: th.clock_screensaver && th.clock_screensaver !== 'original' ? th.clock_screensaver : 'bold',
+    accent: th.accent, fg: th.screensaver_text || '#0B0B0C', lang: UI_LANG, photos: BGS.filter(x => x.variant !== 'dark').map(x => x.url), photoDir: '',
+    photoInterval: b.photo_interval || 20, motion: b.motion_entity, weather: L.sources.weather, aspect: 4 / 3, preview: true,
+    cals: Object.fromEntries((L.sources.calendars || []).map(c => [c.entity, c.color])), night: {on: false}};
+  try { return FACES(new Date(), cfg, states, null, CLOCK).replace(/(\d)vmin/g, '$1cqmin').replace(/(\d)vmax/g, '$1cqmax')
+    .replace(/<ha-icon icon="mdi:([\w-]+)" style="--mdc-icon-size:([^;"]+);?([^"]*)"><\/ha-icon>/g, '<i class="mdi mdi-$1" style="font-size:$2;display:inline-block;$3"></i>'); } catch (e) { return ''; }
+}
 function resolveLang(v) {
   if (v === 'it' || v === 'en') return v;
   let l = '';
@@ -231,6 +257,7 @@ function applyLang(initial) {
   UI_LANG = resolveLang(L && L.language);
   document.documentElement.lang = UI_LANG;
   try { CLOCK = CLOCK_SRC ? new Function('d', 'STYLE', 'ACC', 'FG', 'W', 'BG', CLOCK_SRC.replace(/'it-IT'/g, UI_LANG === 'en' ? "'en-US'" : "'it-IT'")) : null; } catch (e) { CLOCK = null; }
+  try { FACES = FACES_SRC ? new Function('d', 'CFG', 'states', 'hass', 'CLOCK', FACES_SRC) : null; } catch (e) { FACES = null; }
   translateDOM(document.body);
   if (!initial) { renderPanel(); renderBoard(); renderInsp(); }
 }
@@ -744,6 +771,19 @@ function renderPanel() {
     el.innerHTML = `<h3>Salvaschermo</h3>
       ${sw('behavior.screensaver', 'Salvaschermo con orologio', 'Dopo un periodo di inattività (WallPanel)')}
       <div class="field"><label>Attiva dopo (secondi)</label><input class="in" type="number" min="10" step="10" data-p="behavior.idle_time" value="${L.behavior.idle_time}"></div>
+      <h3>Quadranti del salvaschermo</h3>
+      <div class="count">Scegli quali quadranti mostrare e in che ordine: si alternano da soli.</div>
+      ${facesList()}
+      <div class="faceprev">${(L.behavior.faces || ['clock']).map(f => `<div><div class="fp-in">${facePreview(f)}</div><span>${FACE_NAMES[f]}</span></div>`).join('')}</div>
+      <div class="field"><label>Cambia quadrante ogni (secondi)</label><input class="in" type="number" min="10" step="10" data-p="behavior.face_interval" value="${L.behavior.face_interval || 60}"></div>
+      ${sw('behavior.photo_folder', 'Foto dalla cartella Photo Slideshow', 'Media → Media locali → Photo Slideshow. Se è vuota uso i tuoi sfondi')}
+      <div class="field"><label>Cambia foto ogni (secondi)</label><input class="in" type="number" min="10" step="5" data-p="behavior.photo_interval" value="${L.behavior.photo_interval || 20}"></div>
+      <div class="field"><label>Sensore di movimento per il quadrante Flusso</label><select class="in" data-p="behavior.motion_entity"><option value="">Nessuno</option>${entOptions(e => e.domain === 'binary_sensor' && ['motion', 'occupancy', 'presence', 'moving'].includes(e.device_class), L.behavior.motion_entity)}</select></div>
+      <h3>Modalità notte</h3>
+      ${sw('behavior.night_mode', 'Salvaschermo più scuro e caldo di notte')}
+      <div class="row"><div class="field"><label>Dalle</label><input class="in" type="time" data-p="behavior.night_start" value="${esc(L.behavior.night_start || '22:30')}"></div>
+        <div class="field"><label>Alle</label><input class="in" type="time" data-p="behavior.night_end" value="${esc(L.behavior.night_end || '07:00')}"></div></div>
+      ${rng('behavior.night_dim', 'Luminosità di notte', 0.1, 1, 0.05)}
       <h3>Schermo</h3>
       ${sw('behavior.fullscreen', 'Schermo intero', 'Al primo tocco')}
       ${sw('behavior.hide_toolbar', 'Nascondi barra in alto')}
@@ -759,6 +799,13 @@ function renderPanel() {
       <div class="field"><label>Pressione prolungata su un quadrato</label><select class="in" data-p="behavior.hold_action">${[['more-info','Apri dettagli'],['none','Nessuna']].map(([v, n]) => opt(v, n, L.behavior.hold_action)).join('')}</select></div>
       ${sw('behavior.haptic', 'Vibrazione al tocco', 'Solo nell\'app Home Assistant')}`;
     bindPaths(el);
+    el.querySelectorAll('[data-face]').forEach(c => c.onchange = () => {
+      edit(() => { const cur = (L.behavior.faces || ['clock']).filter(x => x !== c.dataset.face); if (c.checked) cur.push(c.dataset.face); L.behavior.faces = cur.length ? cur : ['clock']; });
+      renderPanel();
+    });
+    const fmv = (j, dd) => { edit(() => { const a = L.behavior.faces; const k = j + dd; if (k < 0 || k >= a.length) return; [a[j], a[k]] = [a[k], a[j]]; }); renderPanel(); };
+    el.querySelectorAll('[data-fup]').forEach(b => b.onclick = () => fmv(+b.dataset.fup, -1));
+    el.querySelectorAll('[data-fdown]').forEach(b => b.onclick = () => fmv(+b.dataset.fdown, 1));
   }
   if (tab === 'general') {
     const cals = E.filter(e => e.domain === 'calendar');
@@ -838,6 +885,7 @@ async function refreshStates() {
   try {
     [L, E, BGS, BACKUPS] = await Promise.all([api('api/layout'), api('api/entities'), api('api/backgrounds'), api('api/backups')]);
     try { CLOCK_SRC = await (await fetch('api/clock.js')).text(); } catch (e) { CLOCK_SRC = ''; }
+    try { FACES_SRC = await (await fetch('api/faces.js')).text(); } catch (e) { FACES_SRC = ''; }
     applyLang(true);
     EM = Object.fromEntries(E.map(e => [e.entity_id, e]));
     setOpen(); renderPanel(); renderBoard(); renderInsp();

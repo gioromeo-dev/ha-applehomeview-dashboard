@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.0
+- Screensaver faces: Clock, Photos, Flow (reacts to a motion sensor), Meridian, Weather, Calendar; rotation, live previews and night mode.
+- Quadranti del salvaschermo: Orologio, Foto, Flusso (reagisce a un sensore di movimento), Meridiana, Meteo, Calendario; rotazione, anteprime e modalità notte.
+
 ## 1.5.1
 - New original wallpaper "Argento" (silver, light/dark). / Nuovo sfondo originale "Argento" (chiaro/scuro).
 
