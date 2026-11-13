@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.9.1
+- Sensor groups show the value range; temperature sensors get their matching humidity (tile and popup).
+- I gruppi di sensori mostrano l'intervallo dei valori; accanto alle temperature compare l'umidità (quadrato e popup).
+
 ## 1.9.0
 - Visual icon picker for tiles and groups (device icon, suggestions, search) and icons for the dashboard tabs.
 - Selettore visuale delle icone per quadrati e gruppi (icona del dispositivo, suggerite, ricerca) e icone delle schede.

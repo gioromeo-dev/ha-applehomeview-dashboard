@@ -547,6 +547,14 @@ function tileHTML(t, i) {
     const sts = (t.entities || []).map(id => EM[id]).filter(Boolean);
     const n = sts.filter(s => ON_STATES.includes(s.state)).length;
     let label = t.label || (!sts.length ? 'Vuoto' : !n ? (sts.length === 1 ? 'Spento' : 'Tutto spento') : (n === sts.length && n > 1 ? 'Tutti accesi' : n + (n === 1 ? ' acceso' : ' accesi') + ' su ' + sts.length));
+    if (!t.label && sts.length && sts.every(s => s.domain === 'sensor')) {
+      const f = (a) => (Math.round(a * 10) / 10).toLocaleString(UI_LANG === 'en' ? 'en-US' : 'it-IT');
+      const rg = (arr, u) => { if (!arr.length) return '–'; const mn = Math.min(...arr), mx = Math.max(...arr); return (mn === mx ? f(mn) : f(mn) + '–' + f(mx)) + u; };
+      const num = sts.filter(s => !isNaN(parseFloat(s.state))); const u = num.length ? (num[0].unit || '') : '';
+      label = rg(num.map(s => parseFloat(s.state)), u.startsWith('°') ? '°' : (u ? ' ' + u : ''));
+      const hums = sts.map(s => EM[s.entity_id.replace('temperature', 'humidity')] || EM[s.entity_id.replace('temperatura', 'umidita')]).filter(h => h && h.entity_id.includes('hum') || h && h.entity_id.includes('umid')).filter(h => !isNaN(parseFloat(h.state)));
+      if (hums.length) label += ' · ' + rg(hums.map(h => Math.round(parseFloat(h.state))), '%');
+    }
     return {cls: n ? 'on' : '', html:`<span class="badge"><i class="mdi mdi-dots-grid"></i> ${(t.entities || []).length}</span><i class="mdi mdi-${esc((t.icon || 'mdi:lightbulb-group-outline').replace(/^mdi:/, ''))} ic"></i><div class="nm" data-raw>${esc(t.name || tr('Gruppo'))}</div><div class="lb">${esc(label)}</div>`};
   }
   const e = EM[t.entity];

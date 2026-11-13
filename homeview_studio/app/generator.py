@@ -76,8 +76,15 @@ UNIVERSAL_LABEL = ("[[[ if (!entity) return 'Entità non trovata'; const s = ent
     " return {on:'Acceso', off:'Spento', open:'Aperto', closed:'Chiuso', home:'A casa', not_home:'Fuori', unknown:'—', idle:'Inattivo'}[s] || (s + (a.unit_of_measurement ? ' ' + a.unit_of_measurement : '')); ]]]")
 
 GROUP_LABEL = ("[[[ const ids = (variables && variables.members) || []; const on = ['on','playing','unlocked','open','opening','cool','dry','fan_only','heat','heat_cool','auto','home'];"
-    " const sts = ids.map(i => states[i]).filter(Boolean); if (!sts.length) return 'Vuoto';"
-    " const n = sts.filter(s => on.includes(s.state)).length; if (variables.label) return variables.label;"
+    " const sts = ids.map(i => states[i]).filter(Boolean); if (!sts.length) return 'Vuoto'; if (variables.label) return variables.label;"
+    " if (sts.every(s => s.entity_id.startsWith('sensor.'))) {"
+    "   const f = (a) => (Math.round(a * 10) / 10).toLocaleString('it-IT');"
+    "   const rg = (arr, unit) => { if (!arr.length) return '–'; const mn = Math.min(...arr), mx = Math.max(...arr); return (mn === mx ? f(mn) : f(mn) + '–' + f(mx)) + unit; };"
+    "   const num = sts.filter(s => !isNaN(parseFloat(s.state))); const u = num.length ? (num[0].attributes.unit_of_measurement || '') : '';"
+    "   let out = rg(num.map(s => parseFloat(s.state)), u.startsWith('°') ? '°' : (u === '%' ? '%' : (u ? ' ' + u : '')));"
+    "   const hv = ((variables && variables.hums) || []).map(h => states[h]).filter(s => s && !isNaN(parseFloat(s.state))).map(s => Math.round(parseFloat(s.state)));"
+    "   if (hv.length) out += ' · ' + rg(hv, '%'); return out; }"
+    " const n = sts.filter(s => on.includes(s.state)).length;"
     " if (!n) return sts.length === 1 ? 'Spento' : 'Tutto spento'; if (n === sts.length && n > 1) return 'Tutti accesi';"
     " return n + (n === 1 ? ' acceso' : ' accesi') + ' su ' + sts.length; ]]]")
 GROUP_ANY_ON = ("[[[ const ids = (variables && variables.members) || []; const on = ['on','playing','unlocked','open','opening','cool','dry','fan_only','heat','heat_cool','auto','home'];"
@@ -87,6 +94,11 @@ GROUP_HOLD = ("[[[ const ids = (variables && variables.members) || []; const tg 
     " const any = tg.some(i => states[i] && on.includes(states[i].state));"
     " hass.callService('homeassistant', any ? 'turn_off' : 'turn_on', {entity_id: tg}); ]]]")
 
+EXTRA_TEMPLATES["hv_pop_climate"] = {"template": "hw_pop_btn", "hold_action": {"action": "more-info"},
+    "label": ("[[[ if (!entity || entity.state === 'unavailable') return 'Non risponde'; const f = (x) => (Math.round(parseFloat(x) * 10) / 10).toLocaleString('it-IT');"
+              " const u = entity.attributes.unit_of_measurement || ''; let s = isNaN(parseFloat(entity.state)) ? entity.state : f(entity.state) + (u.startsWith('°') ? '°' : (u ? ' ' + u : ''));"
+              " const h = variables && variables.hum ? states[variables.hum] : null; if (h && !isNaN(parseFloat(h.state))) s += ' · ' + Math.round(parseFloat(h.state)) + '% ' + 'umidità'; return s; ]]]"),
+    "variables": {"hum": ""}}
 EXTRA_TEMPLATES["hv_pop_member"] = {"template": "hw_pop_btn", "label": UNIVERSAL_LABEL, "hold_action": {"action": "more-info"}}
 EXTRA_TEMPLATES["hv_group_tile"] = {"template": "glass_tile", "show_label": True, "label": GROUP_LABEL, "variables": {"members": [], "label": ""},
                                    "hold_action": {"action": "javascript", "javascript": GROUP_HOLD, "haptic": "heavy"}}
@@ -271,8 +283,9 @@ def build_tile(t, base_cam, main_camera, beh, info=None):
         members = [m for m in (t.get("entities") or []) if m]
         c = {"type": "custom:button-card", "template": "hv_group_tile", "name": t.get("name") or "Gruppo",
              "icon": t.get("icon") or "mdi:lightbulb-group-outline",
-             "variables": {"members": members, "label": t.get("label") or ""},
-             "triggers_update": members or "all",
+             "variables": {"members": members, "label": t.get("label") or "",
+                           "hums": [h for h in (humidity_for(m, info) for m in members) if h]},
+             "triggers_update": (members + [h for h in (humidity_for(m, info) for m in members) if h]) or "all",
              "tap_action": {"action": "navigate", "navigation_path": t["_hash"]}}
         if t.get("hold", "toggle_all") != "toggle_all":
             c["hold_action"] = {"action": "none"}
@@ -307,6 +320,18 @@ def build_tile(t, base_cam, main_camera, beh, info=None):
 TOGGLEABLE = ("light", "switch", "fan", "input_boolean", "cover", "media_player", "climate", "automation", "humidifier", "siren")
 
 
+def humidity_for(eid, info):
+    """Find the humidity sensor that belongs with a temperature sensor (same name, 'humidity' instead of 'temperature')."""
+    if not info or not eid.startswith("sensor."):
+        return None
+    for a, b in (("temperature", "humidity"), ("temperatura", "umidita"), ("_temp", "_hum"), ("temperature", "umidita")):
+        if a in eid:
+            cand = eid.replace(a, b)
+            if cand in info and cand != eid:
+                return cand
+    return None
+
+
 def group_popup(t, cal_popup, beh, info):
     if not cal_popup:
         return None
@@ -321,6 +346,10 @@ def group_popup(t, cal_popup, beh, info):
     for m in members:
         dom = m.split(".", 1)[0]
         c = {"type": "custom:button-card", "template": "hv_pop_member", "entity": m}
+        hum = humidity_for(m, info)
+        if hum:
+            c["template"] = "hv_pop_climate"
+            c["variables"] = {"hum": hum}
         tm = (t.get("names") or {}).get(m)
         if tm:
             c["name"] = tm
@@ -486,7 +515,7 @@ EN_WORDS = {  # quoted tokens: 'x' in JS and "x" as JSON values
     "Allarme!": "Triggered!", "Tocca per attivare": "Tap to activate", "Entità non trovata": "Entity not found",
     "Vuoto": "Empty", "Tutto spento": "All off", "Tutti accesi": "All on",
     "Accendi tutto": "Turn all on", "Spegni tutto": "Turn all off", "Gruppo vuoto": "Empty group", "Gruppo": "Group",
-    "Chiudi": "Close", "Telecamere": "Cameras", "Scena": "Scene", "Meteo": "Weather", "Calendario": "Calendar", "Campanello": "Doorbell", "Telecamera": "Camera",
+    "Chiudi": "Close", "umidità": "humidity", "Telecamere": "Cameras", "Scena": "Scene", "Meteo": "Weather", "Calendario": "Calendar", "Campanello": "Doorbell", "Telecamera": "Camera",
 }
 
 
